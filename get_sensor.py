@@ -116,6 +116,34 @@ tar = (glucose > HIGH).sum() / total * 100
 tbr = (glucose < LOW).sum() / total * 100
 
 # --------------------------------------------------
+# 7b) AUC Metrics
+# --------------------------------------------------
+# Convert time to minutes since start
+df_auc = df.copy()
+df_auc = df_auc.sort_values("Time")
+
+df_auc["time_minutes"] = (
+    (df_auc["Time"] - df_auc["Time"].iloc[0]).dt.total_seconds() / 60.0
+)
+
+times = df_auc["time_minutes"].values
+values = df_auc["Sensor Reading(mg/dL)"].values
+
+# Total AUC
+#auc_total = np.trapz(values, times)
+auc_total = np.trapezoid(values, times)
+
+
+# AUC above HIGH
+above = np.maximum(values - HIGH, 0)
+auc_high = np.trapezoid(above, times)
+
+# AUC below LOW
+below = np.maximum(LOW - values, 0)
+auc_low = np.trapezoid(below, times)
+
+
+# --------------------------------------------------
 # 8) Circadian Binning
 # --------------------------------------------------
 df["seconds"] = (
@@ -203,6 +231,9 @@ textstr = (
     f"CONGA(1h): {conga:.1f}\n"
     f"LBGI: {lbgi:.2f}\n"
     f"HBGI: {hbgi:.2f}"
+    f"\nAUC Total: {auc_total:.0f}\n"
+    f"AUC >{HIGH}: {auc_high:.0f}\n"
+    f"AUC <{LOW}: {auc_low:.0f}"
 )
 
 plt.gcf().text(0.80, 0.70, textstr, fontsize=10,

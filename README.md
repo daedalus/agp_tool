@@ -60,7 +60,7 @@ This tool generates a comprehensive Ambulatory Glucose Profile (AGP) with extend
 ### Usage ###
 
 ```
-python get_sensor.py input_file.xlsx [options]
+python main.py input_file.xlsx [options]
 
 Options:
   --output, -o           Output PNG filename
@@ -82,27 +82,27 @@ Options:
 
 Basic usage
 
-`python get_sensor.py data.xlsx`
+`python main.py data.xlsx`
 
 Custom output file and thresholds
 
-`python get_sensor.py data.xlsx -o my_agp.png --low-threshold 65 --high-threshold 200`
+`python main.py data.xlsx -o my_agp.png --low-threshold 65 --high-threshold 200`
 
 Custom tight range and bin size
 
-`python get_sensor.py data.xlsx --tight-low 80 --tight-high 150 --bin-minutes 10`
+`python main.py data.xlsx --tight-low 80 --tight-high 150 --bin-minutes 10`
 
 Calculate only metrics, no plot
 
-`python get_sensor.py data.xlsx --no-plot --verbose`
+`python main.py data.xlsx --no-plot --verbose`
 
 With config file
 
-`python get_sensor.py data.xlsx --config my_settings.json`
+`python main.py data.xlsx --config my_settings.json`
 
 See all options
 
-`python get_sensor.py -h`
+`python main.py -h`
 
 ## Example ##
 

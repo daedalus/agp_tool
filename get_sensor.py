@@ -373,6 +373,9 @@ ax1.axhspan(20, LOW, alpha=0.1, color='red',
 # Add the standard target range as a lighter overlay to show the full target
 ax1.axhspan(HIGH, TIGHT_HIGH, alpha=0.1, color='yellowgreen')  # 140-180 zone
 
+# Add trend line
+ax1.axhline(mean_glucose, linestyle='-.', linewidth=2, color='purple', alpha=0.7, label='Trend')
+
 # Main AGP elements
 ax1.fill_between(x, result["p5"], result["p95"], alpha=0.15, color='blue', label="5–95%")
 ax1.fill_between(x, result["p25"], result["p75"], alpha=0.35, color='blue', label="IQR")

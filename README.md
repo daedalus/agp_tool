@@ -1,4 +1,4 @@
-AGP Glucose Analysis Tool with TITR
+Ambulatory glucose profile analysis tool
 
 ## DISCLAIMER ##
 

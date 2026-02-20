@@ -190,6 +190,7 @@ def compute_gri(lbgi, hbgi):
 
 
 gri = compute_gri(lbgi, hbgi)
+gri_txt = 'Low Risk' if gri < 20 else 'Moderate' if gri < 40 else 'High Risk' 
 
 # --------------------------------------------------
 # 9) TIR / TAR / TBR / TITR with levels
@@ -321,7 +322,7 @@ result["minutes"] = result["bin"] * BIN_MINUTES
 # --------------------------------------------------
 # Create a categorical column for glucose ranges
 df['glucose_range'] = pd.cut(df['Sensor Reading(mg/dL)'], 
-                              bins=[0, 54, 70, 180, 250, 1000],
+                              bins=[0, 54, 70, 140, 250, 1000],
                               labels=['Very Low', 'Low', 'Target', 'High', 'Very High'])
 
 # --------------------------------------------------
@@ -343,12 +344,12 @@ ax_bar = fig.add_subplot(gs[0, :2])
 ax1 = fig.add_subplot(gs[0, 2:])
 
 # Create stacked bar chart of glucose distribution (EXACTLY AS ORIGINAL)
-categories = ['Very Low\n(<54)', 'Low\n(54-69)', 'Target\n(70-180)', 
-              'High\n(181-250)', 'Very High\n(>250)']
+categories = ['Very Low\n(<54)', 'Low\n(54-69)', 'Target\n(70-140)', 
+              'High\n(141-250)', 'Very High\n(>250)']
 percentages = [very_low_pct, low_pct, tight_target_pct, high_pct, very_high_pct]
 colors = ['darkred', 'red', 'limegreen', 'orange', 'darkorange']
-labels = ['Very Low (<54)', 'Low (54-69)', 'Target (70-180)', 
-          'High (181-250)', 'Very High (>250)']
+labels = ['Very Low (<54)', 'Low (54-69)', 'Target (70-140)', 
+          'High (141-250)', 'Very High (>250)']
 
 # Create vertical stacked bar
 bottoms = np.zeros(1)
@@ -461,7 +462,7 @@ textstr = (
     f"RISK\n"
     f"LBGI: {lbgi:.2f}\n"
     f"HBGI: {hbgi:.2f}\n"
-    f"GRI: {gri:.1f}\n"
+    f"GRI: {gri:.1f} ({gri_txt})\n"
     f"ADRR: {adrr:.1f}\n\n"
     f"AUC\n"
     f"Time-weighted avg: {time_weighted_avg:.1f} mg/dL\n"
@@ -594,6 +595,7 @@ print(f"Time in Tight Range (70-140): {titr:.1f}% - {'Excellent' if titr >= 50 e
 print(f"Time Below Range: {tbr:.1f}% - {'Target met (<4%)' if tbr < 4 else 'Above target'}")
 print(f"Glucose Variability (CV): {cv_percent:.1f}% - {'Stable (<36%)' if cv_percent < 36 else 'Unstable (≥36%)'}")
 print(f"Overall Trend: {trend_arrow} {trend_direction} (slope: {trend_slope:.1f} mg/dL/day)")
+print(f"Glycemia Risk Index (GRI): {gri:.1f} - {gri_txt}")
 print("="*60)
 
 if days_of_data < 5:

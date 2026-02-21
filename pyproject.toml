@@ -20,6 +20,9 @@ dependencies = [
 [project.scripts]
 agp = "agp.main:main"
 
+[project.optional-dependencies]
+test = ["pytest>=7.0", "pytest-cov"]
+
 [tool.setuptools.packages.find]
 where = ["."]
 include = ["agp*"]

@@ -64,8 +64,10 @@ def export_metrics(metrics, export_path, report_header=None, verbose=False):
                 json.dump(export_data, f, indent=2)
         elif export_path.endswith('.csv'):
             pd.DataFrame([export_data]).to_csv(export_path, index=False)
+        elif export_path.endswith('.xlsx'):
+            pd.DataFrame([export_data]).to_excel(export_path, index=False)
         else:
-            print(f"Warning: Unrecognized export format for '{export_path}'. Use .json or .csv")
+            print(f"Warning: Unrecognized export format for '{export_path}'. Use .json, .csv, or .xlsx")
             return
         print(f"\nMetrics exported to: {export_path}")
     except Exception as e:

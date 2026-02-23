@@ -120,7 +120,7 @@ options:
   --heatmap             Enable the circadian glucose heatmap (disabled by default)
   --heatmap-cmap HEATMAP_CMAP
                         Colormap for circadian heatmap (default: RdYlGn_r, requires --heatmap)
-  --pdf                 Also produce a PDF file with the PNG embedded as an image and metadata copied from the PNG
+  --pdf                 Also produce a PDF file with the PNG embedded as an image and metadata copied from the PNG. The PDF page size matches the source PNG dimensions exactly (derived from the PNG pHYs DPI metadata, defaulting to 72 DPI), with no margins, so the image is never cropped.
 ```
 
 ### Examples

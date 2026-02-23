@@ -116,21 +116,10 @@ def compute_gri(very_low_pct, low_pct, very_high_pct, high_pct):
     return min(raw, 100.0)
 
 
-def compute_all_metrics(df, cfg):
-    """Orchestrate all metric computations and return a comprehensive dict."""
-    VERY_LOW = cfg["VERY_LOW"]
-    LOW = cfg["LOW"]
-    HIGH = cfg["HIGH"]
-    VERY_HIGH = cfg["VERY_HIGH"]
-    TIGHT_LOW = cfg["TIGHT_LOW"]
-    TIGHT_HIGH = cfg["TIGHT_HIGH"]
-    SENSOR_INTERVAL = cfg["SENSOR_INTERVAL"]
-
+def compute_core_metrics(df, cfg):
+    """Compute core descriptive glucose statistics."""
     glucose = df["Sensor Reading(mg/dL)"]
 
-    # --------------------------------------------------
-    # Core Metrics
-    # --------------------------------------------------
     mean_glucose = glucose.mean()
     median_glucose = glucose.median()
     std_glucose = glucose.std(ddof=0)
@@ -173,18 +162,52 @@ def compute_all_metrics(df, cfg):
     gmi = 3.31 + (0.02392 * mean_glucose)
     j_index = 0.001 * (mean_glucose + std_glucose) ** 2
 
-    # --------------------------------------------------
-    # Variability Metrics
-    # --------------------------------------------------
+    return {
+        "mean_glucose": mean_glucose,
+        "median_glucose": median_glucose,
+        "std_glucose": std_glucose,
+        "mode_str": mode_str,
+        "skew_glucose": skew_glucose,
+        "skew_interpretation": skew_interpretation,
+        "skew_clinical": skew_clinical,
+        "gmi": gmi,
+        "cv_percent": cv_percent,
+        "day_cv": day_cv,
+        "night_cv": night_cv,
+        "j_index": j_index,
+    }
+
+
+def compute_variability_metrics(df, cfg):
+    """Compute glucose variability metrics."""
+    glucose = df["Sensor Reading(mg/dL)"]
+
     mage = compute_mage(glucose)
     modd = compute_modd(df)
     adrr = compute_adrr(glucose, df["Time"].dt.date)
     conga = compute_conga(df)
     lbgi, hbgi = compute_risk_indices(glucose)
 
-    # --------------------------------------------------
-    # TIR / TAR / TBR / TITR with levels
-    # --------------------------------------------------
+    return {
+        "mage": mage,
+        "modd": modd,
+        "adrr": adrr,
+        "conga": conga,
+        "lbgi": lbgi,
+        "hbgi": hbgi,
+    }
+
+
+def compute_time_in_range_metrics(df, cfg):
+    """Compute time-in-range, time-above-range, and time-below-range metrics."""
+    VERY_LOW = cfg["VERY_LOW"]
+    LOW = cfg["LOW"]
+    HIGH = cfg["HIGH"]
+    VERY_HIGH = cfg["VERY_HIGH"]
+    TIGHT_LOW = cfg["TIGHT_LOW"]
+    TIGHT_HIGH = cfg["TIGHT_HIGH"]
+
+    glucose = df["Sensor Reading(mg/dL)"]
     total = len(glucose)
 
     very_low_pct = (glucose < VERY_LOW).sum() / total * 100
@@ -220,9 +243,33 @@ def compute_all_metrics(df, cfg):
     else:
         gri_txt = "Extremely High Risk"
 
-    # --------------------------------------------------
-    # AUC Metrics
-    # --------------------------------------------------
+    return {
+        "tir": tir,
+        "titr": titr,
+        "tatr": tatr,
+        "tar": tar,
+        "tar_level1": tar_level1,
+        "tar_level2": tar_level2,
+        "tbr": tbr,
+        "tbr_level1": tbr_level1,
+        "tbr_level2": tbr_level2,
+        "very_low_pct": very_low_pct,
+        "low_pct": low_pct,
+        "tight_target_pct": tight_target_pct,
+        "above_tight_pct": above_tight_pct,
+        "high_pct": high_pct,
+        "very_high_pct": very_high_pct,
+        "gri": gri,
+        "gri_txt": gri_txt,
+    }
+
+
+def compute_auc_metrics(df, cfg):
+    """Compute area-under-the-curve glucose exposure metrics."""
+    LOW = cfg["LOW"]
+    HIGH = cfg["HIGH"]
+    VERY_LOW = cfg["VERY_LOW"]
+
     df_auc = df.sort_values("Time").copy()
     df_auc["time_minutes"] = (
         df_auc["Time"] - df_auc["Time"].iloc[0]
@@ -247,9 +294,20 @@ def compute_all_metrics(df, cfg):
         (auc_very_low / auc_total) * 100 if auc_total > 0 else 0
     )
 
-    # --------------------------------------------------
-    # Data Quality Metrics
-    # --------------------------------------------------
+    return {
+        "time_weighted_avg": time_weighted_avg,
+        "exposure_severity_to_hyperglycemia_pct": exposure_severity_to_hyperglycemia_pct,
+        "exposure_severity_to_hypoglycemia_pct": exposure_severity_to_hypoglycemia_pct,
+        "exposure_severity_to_severe_hypoglycemia_pct": exposure_severity_to_severe_hypoglycemia_pct,
+    }
+
+
+def compute_data_quality_metrics(df, cfg):
+    """Compute data completeness and quality metrics."""
+    SENSOR_INTERVAL = cfg["SENSOR_INTERVAL"]
+
+    glucose = df["Sensor Reading(mg/dL)"]
+
     days_of_data = (df["Time"].max() - df["Time"].min()).total_seconds() / 86400.0
     days_of_data = max(days_of_data, 1 / 24)  # Minimum 1 hour to avoid division by zero
     hours_of_data = (df["Time"].max() - df["Time"].min()).total_seconds() / 3600
@@ -267,9 +325,18 @@ def compute_all_metrics(df, cfg):
         (severe_hypo_count / days_of_data) * 7 if days_of_data > 0 else np.nan
     )
 
-    # --------------------------------------------------
-    # Overall Glucose Trend
-    # --------------------------------------------------
+    return {
+        "days_of_data": days_of_data,
+        "hours_of_data": hours_of_data,
+        "readings_per_day": readings_per_day,
+        "wear_percentage": wear_percentage,
+        "severe_hypo_count": severe_hypo_count,
+        "severe_hypo_per_week": severe_hypo_per_week,
+    }
+
+
+def compute_overall_glucose_trend(df, cfg):
+    """Compute the overall glucose trend direction and slope."""
     time_days = (df["Time"] - df["Time"].min()).dt.total_seconds() / 86400.0
     if time_days.max() > 0 and len(time_days) >= 2:
         trend_slope, _ = np.polyfit(time_days, df["Sensor Reading(mg/dL)"], 1)
@@ -290,53 +357,20 @@ def compute_all_metrics(df, cfg):
         trend_color = "steelblue"
 
     return {
-        "tir": tir,
-        "titr": titr,
-        "tatr": tatr,
-        "tar": tar,
-        "tar_level1": tar_level1,
-        "tar_level2": tar_level2,
-        "tbr": tbr,
-        "tbr_level1": tbr_level1,
-        "tbr_level2": tbr_level2,
-        "very_low_pct": very_low_pct,
-        "low_pct": low_pct,
-        "tight_target_pct": tight_target_pct,
-        "above_tight_pct": above_tight_pct,
-        "high_pct": high_pct,
-        "very_high_pct": very_high_pct,
-        "mean_glucose": mean_glucose,
-        "median_glucose": median_glucose,
-        "std_glucose": std_glucose,
-        "mode_str": mode_str,
-        "skew_glucose": skew_glucose,
-        "skew_interpretation": skew_interpretation,
-        "skew_clinical": skew_clinical,
-        "gmi": gmi,
-        "cv_percent": cv_percent,
-        "day_cv": day_cv,
-        "night_cv": night_cv,
-        "j_index": j_index,
-        "mage": mage,
-        "modd": modd,
-        "conga": conga,
-        "lbgi": lbgi,
-        "hbgi": hbgi,
-        "gri": gri,
-        "gri_txt": gri_txt,
-        "adrr": adrr,
-        "time_weighted_avg": time_weighted_avg,
-        "exposure_severity_to_hyperglycemia_pct": exposure_severity_to_hyperglycemia_pct,
-        "exposure_severity_to_hypoglycemia_pct": exposure_severity_to_hypoglycemia_pct,
-        "exposure_severity_to_severe_hypoglycemia_pct": exposure_severity_to_severe_hypoglycemia_pct,
-        "days_of_data": days_of_data,
-        "hours_of_data": hours_of_data,
-        "readings_per_day": readings_per_day,
-        "wear_percentage": wear_percentage,
-        "severe_hypo_count": severe_hypo_count,
-        "severe_hypo_per_week": severe_hypo_per_week,
         "trend_slope": trend_slope,
         "trend_direction": trend_direction,
         "trend_arrow": trend_arrow,
         "trend_color": trend_color,
     }
+
+
+def compute_all_metrics(df, cfg):
+    """Orchestrate all metric computations and return a comprehensive dict."""
+    metrics = {}
+    metrics.update(compute_core_metrics(df, cfg))
+    metrics.update(compute_variability_metrics(df, cfg))
+    metrics.update(compute_time_in_range_metrics(df, cfg))
+    metrics.update(compute_auc_metrics(df, cfg))
+    metrics.update(compute_data_quality_metrics(df, cfg))
+    metrics.update(compute_overall_glucose_trend(df, cfg))
+    return metrics

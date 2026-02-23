@@ -9,6 +9,12 @@ from agp.metrics import (
     compute_conga,
     compute_risk_indices,
     compute_gri,
+    compute_core_metrics,
+    compute_variability_metrics,
+    compute_time_in_range_metrics,
+    compute_auc_metrics,
+    compute_data_quality_metrics,
+    compute_overall_glucose_trend,
     compute_all_metrics,
 )
 
@@ -162,6 +168,115 @@ def test_gri_correct_weighted_sum():
 def test_gri_capped_at_100():
     result = compute_gri(20, 20, 20, 20)
     assert result == 100.0
+
+
+# ---------------------------------------------------------------------------
+# compute_core_metrics
+# ---------------------------------------------------------------------------
+
+
+def test_core_metrics_returns_expected_keys(glucose_df, cfg):
+    result = compute_core_metrics(glucose_df, cfg)
+    for key in ["mean_glucose", "median_glucose", "std_glucose", "mode_str",
+                "skew_glucose", "skew_interpretation", "skew_clinical",
+                "gmi", "cv_percent", "day_cv", "night_cv", "j_index"]:
+        assert key in result, f"Missing key: {key}"
+
+
+def test_core_metrics_mean_in_range(glucose_df, cfg):
+    result = compute_core_metrics(glucose_df, cfg)
+    assert 20 <= result["mean_glucose"] <= 600
+
+
+# ---------------------------------------------------------------------------
+# compute_variability_metrics
+# ---------------------------------------------------------------------------
+
+
+def test_variability_metrics_returns_expected_keys(glucose_df, cfg):
+    result = compute_variability_metrics(glucose_df, cfg)
+    for key in ["mage", "modd", "adrr", "conga", "lbgi", "hbgi"]:
+        assert key in result, f"Missing key: {key}"
+
+
+def test_variability_metrics_non_negative(glucose_df, cfg):
+    result = compute_variability_metrics(glucose_df, cfg)
+    assert result["conga"] >= 0
+    assert result["lbgi"] >= 0
+    assert result["hbgi"] >= 0
+
+
+# ---------------------------------------------------------------------------
+# compute_time_in_range_metrics
+# ---------------------------------------------------------------------------
+
+
+def test_time_in_range_metrics_returns_expected_keys(glucose_df, cfg):
+    result = compute_time_in_range_metrics(glucose_df, cfg)
+    for key in ["tir", "titr", "tatr", "tar", "tbr", "gri", "gri_txt",
+                "very_low_pct", "low_pct", "tight_target_pct",
+                "above_tight_pct", "high_pct", "very_high_pct"]:
+        assert key in result, f"Missing key: {key}"
+
+
+def test_time_in_range_percentages_sum_to_100(glucose_df, cfg):
+    m = compute_time_in_range_metrics(glucose_df, cfg)
+    total = (
+        m["very_low_pct"] + m["low_pct"] + m["tight_target_pct"]
+        + m["above_tight_pct"] + m["high_pct"] + m["very_high_pct"]
+    )
+    assert total == pytest.approx(100.0, abs=1e-6)
+
+
+# ---------------------------------------------------------------------------
+# compute_auc_metrics
+# ---------------------------------------------------------------------------
+
+
+def test_auc_metrics_returns_expected_keys(glucose_df, cfg):
+    result = compute_auc_metrics(glucose_df, cfg)
+    for key in ["time_weighted_avg", "exposure_severity_to_hyperglycemia_pct",
+                "exposure_severity_to_hypoglycemia_pct",
+                "exposure_severity_to_severe_hypoglycemia_pct"]:
+        assert key in result, f"Missing key: {key}"
+
+
+def test_auc_metrics_time_weighted_avg_in_range(glucose_df, cfg):
+    result = compute_auc_metrics(glucose_df, cfg)
+    assert 20 <= result["time_weighted_avg"] <= 600
+
+
+# ---------------------------------------------------------------------------
+# compute_data_quality_metrics
+# ---------------------------------------------------------------------------
+
+
+def test_data_quality_metrics_returns_expected_keys(glucose_df, cfg):
+    result = compute_data_quality_metrics(glucose_df, cfg)
+    for key in ["days_of_data", "hours_of_data", "readings_per_day",
+                "wear_percentage", "severe_hypo_count", "severe_hypo_per_week"]:
+        assert key in result, f"Missing key: {key}"
+
+
+def test_data_quality_metrics_days_of_data(glucose_df, cfg):
+    result = compute_data_quality_metrics(glucose_df, cfg)
+    assert result["days_of_data"] == pytest.approx(7.0, abs=0.1)
+
+
+# ---------------------------------------------------------------------------
+# compute_overall_glucose_trend
+# ---------------------------------------------------------------------------
+
+
+def test_overall_glucose_trend_returns_expected_keys(glucose_df, cfg):
+    result = compute_overall_glucose_trend(glucose_df, cfg)
+    for key in ["trend_slope", "trend_direction", "trend_arrow", "trend_color"]:
+        assert key in result, f"Missing key: {key}"
+
+
+def test_overall_glucose_trend_direction_valid(glucose_df, cfg):
+    result = compute_overall_glucose_trend(glucose_df, cfg)
+    assert result["trend_direction"] in {"UP", "DOWN", "STABLE"}
 
 
 # ---------------------------------------------------------------------------

@@ -5,3 +5,4 @@ __pycache__/
 dist/
 build/
 .eggs/
+ambulatory_glucose_profile.png

@@ -246,37 +246,37 @@ options:
 
 Basic usage
 
-`python main.py data.xlsx`
+`agp_tool data.xlsx`
 
 Or with CSV/ODS input
 
-`python main.py data.csv`
+`agp_tool data.csv`
 
-`python main.py data.ods`
+`agp_tool data.ods`
 
 Custom output file and thresholds
 
-`python main.py data.xlsx -o my_agp.png --low-threshold 65 --high-threshold 200`
+`agp_tool data.xlsx -o my_agp.png --low-threshold 65 --high-threshold 200`
 
 Custom tight range and bin size
 
-`python main.py data.xlsx --tight-low 80 --tight-high 150 --bin-minutes 10`
+`agp_tool data.xlsx --tight-low 80 --tight-high 150 --bin-minutes 10`
 
 Calculate only metrics, no plot
 
-`python main.py data.xlsx --no-plot --verbose`
+`agp_tool data.xlsx --no-plot --verbose`
 
 Generate PNG and also export a PDF
 
-`python main.py data.xlsx --pdf`
+`agp_tool data.xlsx --pdf`
 
 With config file
 
-`python main.py data.xlsx --config my_settings.json`
+`agp_tool data.xlsx --config my_settings.json`
 
 See all options
 
-`python main.py -h`
+`agp_tool -h`
 
 ### Example output
 

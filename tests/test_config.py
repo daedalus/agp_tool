@@ -24,9 +24,16 @@ def _make_args(**overrides):
 def test_build_config_returns_all_expected_keys():
     cfg = build_config(_make_args())
     expected = {
-        "VERY_LOW", "LOW", "HIGH", "VERY_HIGH",
-        "TIGHT_LOW", "TIGHT_HIGH", "BIN_MINUTES",
-        "MIN_SAMPLES_PER_BIN", "SENSOR_INTERVAL", "ROC_CLIP",
+        "VERY_LOW",
+        "LOW",
+        "HIGH",
+        "VERY_HIGH",
+        "TIGHT_LOW",
+        "TIGHT_HIGH",
+        "BIN_MINUTES",
+        "MIN_SAMPLES_PER_BIN",
+        "SENSOR_INTERVAL",
+        "ROC_CLIP",
     }
     assert expected == set(cfg.keys())
 
@@ -72,12 +79,14 @@ def test_build_config_roc_clip_always_10():
 
 
 def test_build_config_custom_thresholds():
-    cfg = build_config(_make_args(
-        very_low_threshold=60,
-        low_threshold=80,
-        high_threshold=160,
-        very_high_threshold=200,
-    ))
+    cfg = build_config(
+        _make_args(
+            very_low_threshold=60,
+            low_threshold=80,
+            high_threshold=160,
+            very_high_threshold=200,
+        )
+    )
     assert cfg["VERY_LOW"] == 60
     assert cfg["LOW"] == 80
     assert cfg["HIGH"] == 160

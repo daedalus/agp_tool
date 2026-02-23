@@ -5,14 +5,16 @@ import pandas as pd
 import numpy as np
 
 # Magic-byte signatures for binary spreadsheet formats.
-_OLE2_MAGIC = b'\xD0\xCF\x11\xE0\xA1\xB1\x1A\xE1'  # Legacy .xls (OLE2 compound document)
-_ZIP_MAGIC = b'PK\x03\x04'                            # ZIP container (.xlsx, .ods)
+_OLE2_MAGIC = (
+    b"\xd0\xcf\x11\xe0\xa1\xb1\x1a\xe1"  # Legacy .xls (OLE2 compound document)
+)
+_ZIP_MAGIC = b"PK\x03\x04"  # ZIP container (.xlsx, .ods)
 
 _READERS = {
     ".xlsx": lambda p: pd.read_excel(p, engine="openpyxl"),
-    ".xls":  lambda p: pd.read_excel(p, engine="xlrd"),
-    ".ods":  lambda p: pd.read_excel(p, engine="odf"),
-    ".csv":  lambda p: pd.read_csv(p),
+    ".xls": lambda p: pd.read_excel(p, engine="xlrd"),
+    ".ods": lambda p: pd.read_excel(p, engine="odf"),
+    ".csv": lambda p: pd.read_csv(p),
 }
 
 
@@ -25,12 +27,12 @@ def _sniff_format(path: str):
     """
     if "../" in path or "..\\" in path:
         raise Exception("Invalid file path")
-    with open(path, 'rb') as f:
+    with open(path, "rb") as f:
         header = f.read(8)
 
     # OLE2 compound document → legacy .xls
     if header == _OLE2_MAGIC:
-        return 'xls'
+        return "xls"
 
     # ZIP container → could be .xlsx or .ods; inspect the archive to decide
     if header[:4] == _ZIP_MAGIC:
@@ -38,14 +40,16 @@ def _sniff_format(path: str):
             with zipfile.ZipFile(path) as zf:
                 names = set(zf.namelist())
                 # OpenDocument: has a 'mimetype' entry with an ODF MIME-type prefix
-                if 'mimetype' in names:
-                    with zf.open('mimetype') as mt:
-                        mime = mt.read(64).decode('ascii', errors='replace')
-                    if mime.startswith('application/vnd.oasis.opendocument'):
-                        return 'ods'
+                if "mimetype" in names:
+                    with zf.open("mimetype") as mt:
+                        mime = mt.read(64).decode("ascii", errors="replace")
+                    if mime.startswith("application/vnd.oasis.opendocument"):
+                        return "ods"
                 # Office Open XML (.xlsx): contains [Content_Types].xml and/or xl/ namespace
-                if '[Content_Types].xml' in names or any(n.startswith('xl/') for n in names):
-                    return 'xlsx'
+                if "[Content_Types].xml" in names or any(
+                    n.startswith("xl/") for n in names
+                ):
+                    return "xlsx"
         except (zipfile.BadZipFile, KeyError):
             pass
 
@@ -65,16 +69,16 @@ def _read_input(input_file: str) -> pd.DataFrame:
     ext = os.path.splitext(input_file)[1].lower()
 
     # CSV: sniffing unreliable for plain-text formats; always use extension.
-    if ext == '.csv':
+    if ext == ".csv":
         return pd.read_csv(input_file)
 
     # Attempt content sniffing for binary spreadsheet formats.
     fmt = _sniff_format(input_file)
-    if fmt == 'xls':
+    if fmt == "xls":
         return pd.read_excel(input_file, engine="xlrd")
-    if fmt == 'xlsx':
+    if fmt == "xlsx":
         return pd.read_excel(input_file, engine="openpyxl")
-    if fmt == 'ods':
+    if fmt == "ods":
         return pd.read_excel(input_file, engine="odf")
 
     # Sniffing inconclusive – fall back to extension-based dispatch.
@@ -96,8 +100,10 @@ def load_and_preprocess(input_file, cfg, verbose=False):
     """
     if verbose:
         print(f"Loading data from: {input_file}")
-        print(f"Glucose thresholds: Low={cfg['LOW']}, High={cfg['HIGH']}, "
-              f"Tight={cfg['TIGHT_LOW']}-{cfg['TIGHT_HIGH']}")
+        print(
+            f"Glucose thresholds: Low={cfg['LOW']}, High={cfg['HIGH']}, "
+            f"Tight={cfg['TIGHT_LOW']}-{cfg['TIGHT_HIGH']}"
+        )
 
     try:
         df = _read_input(input_file)
@@ -130,6 +136,6 @@ def load_and_preprocess(input_file, cfg, verbose=False):
     df["delta_minutes"] = df["Time"].diff().dt.total_seconds() / 60.0
     df["ROC"] = df["delta_glucose"] / df["delta_minutes"]
     df.loc[df["delta_minutes"] <= 0, "ROC"] = np.nan
-    df["ROC"] = df["ROC"].clip(-cfg['ROC_CLIP'], cfg['ROC_CLIP'])
+    df["ROC"] = df["ROC"].clip(-cfg["ROC_CLIP"], cfg["ROC_CLIP"])
 
     return df

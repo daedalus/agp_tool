@@ -7,16 +7,16 @@ import pytest
 def cfg():
     """Default config matching build_config defaults."""
     return {
-        'VERY_LOW': 54,
-        'LOW': 70,
-        'HIGH': 180,
-        'VERY_HIGH': 250,
-        'TIGHT_LOW': 70,
-        'TIGHT_HIGH': 140,
-        'BIN_MINUTES': 5,
-        'MIN_SAMPLES_PER_BIN': 5,
-        'SENSOR_INTERVAL': 5,
-        'ROC_CLIP': 10,
+        "VERY_LOW": 54,
+        "LOW": 70,
+        "HIGH": 180,
+        "VERY_HIGH": 250,
+        "TIGHT_LOW": 70,
+        "TIGHT_HIGH": 140,
+        "BIN_MINUTES": 5,
+        "MIN_SAMPLES_PER_BIN": 5,
+        "SENSOR_INTERVAL": 5,
+        "ROC_CLIP": 10,
     }
 
 
@@ -30,9 +30,9 @@ def glucose_df():
     glucose = 120 + 50 * np.sin(2 * np.pi * t / (24 * 12))
 
     # Sprinkle in high, very-high, low and very-low readings
-    glucose[100:120] = 210   # high
-    glucose[200:210] = 260   # very high
-    glucose[300:310] = 62    # low
-    glucose[400:410] = 45    # very low
+    glucose[100:120] = 210  # high
+    glucose[200:210] = 260  # very high
+    glucose[300:310] = 62  # low
+    glucose[400:410] = 45  # very low
 
     return pd.DataFrame({"Time": rng, "Sensor Reading(mg/dL)": glucose})

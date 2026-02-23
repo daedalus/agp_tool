@@ -17,6 +17,7 @@ from agp.metrics import (
 # compute_mage
 # ---------------------------------------------------------------------------
 
+
 def test_mage_returns_nan_for_short_series():
     """Series with ≤4 values yields NaN after rolling(3) leaves <3 points."""
     series = pd.Series([100, 120, 90, 110])
@@ -32,7 +33,7 @@ def test_mage_returns_nan_for_two_values():
 
 def test_mage_returns_positive_float_for_oscillating_series():
     """Clear alternating high/low pattern should produce a positive MAGE."""
-    values = [100, 200] * 20   # strong oscillation
+    values = [100, 200] * 20  # strong oscillation
     series = pd.Series(values)
     result = compute_mage(series)
     assert isinstance(result, float)
@@ -49,6 +50,7 @@ def test_mage_returns_float_or_nan_for_fixture(glucose_df):
 # compute_modd
 # ---------------------------------------------------------------------------
 
+
 def test_modd_returns_non_negative_for_multi_day(glucose_df):
     result = compute_modd(glucose_df)
     assert not np.isnan(result)
@@ -58,10 +60,12 @@ def test_modd_returns_non_negative_for_multi_day(glucose_df):
 def test_modd_returns_nan_for_single_day():
     """Only one day of data → no consecutive-day pairs → NaN."""
     rng = pd.date_range("2024-01-01", periods=288, freq="5min")
-    df = pd.DataFrame({
-        "Time": rng,
-        "Sensor Reading(mg/dL)": np.full(288, 120.0),
-    })
+    df = pd.DataFrame(
+        {
+            "Time": rng,
+            "Sensor Reading(mg/dL)": np.full(288, 120.0),
+        }
+    )
     result = compute_modd(df)
     assert np.isnan(result)
 
@@ -69,6 +73,7 @@ def test_modd_returns_nan_for_single_day():
 # ---------------------------------------------------------------------------
 # compute_adrr
 # ---------------------------------------------------------------------------
+
 
 def test_adrr_returns_non_negative_for_multi_day(glucose_df):
     values = glucose_df["Sensor Reading(mg/dL)"]
@@ -91,6 +96,7 @@ def test_adrr_returns_nan_for_insufficient_readings():
 # compute_conga
 # ---------------------------------------------------------------------------
 
+
 def test_conga_returns_non_negative(glucose_df):
     result = compute_conga(glucose_df)
     assert isinstance(result, float)
@@ -100,10 +106,12 @@ def test_conga_returns_non_negative(glucose_df):
 def test_conga_is_zero_for_constant_glucose():
     """Constant glucose → no variability → CONGA ≈ 0."""
     rng = pd.date_range("2024-01-01", periods=200, freq="5min")
-    df = pd.DataFrame({
-        "Time": rng,
-        "Sensor Reading(mg/dL)": np.full(200, 110.0),
-    })
+    df = pd.DataFrame(
+        {
+            "Time": rng,
+            "Sensor Reading(mg/dL)": np.full(200, 110.0),
+        }
+    )
     result = compute_conga(df)
     assert result == pytest.approx(0.0, abs=1e-6)
 
@@ -111,6 +119,7 @@ def test_conga_is_zero_for_constant_glucose():
 # ---------------------------------------------------------------------------
 # compute_risk_indices
 # ---------------------------------------------------------------------------
+
 
 def test_risk_indices_returns_non_negative_tuple():
     values = pd.Series([80, 100, 120, 140, 160])
@@ -139,6 +148,7 @@ def test_hbgi_higher_for_high_glucose():
 # compute_gri
 # ---------------------------------------------------------------------------
 
+
 def test_gri_zero_for_all_zeros():
     assert compute_gri(0, 0, 0, 0) == 0.0
 
@@ -159,10 +169,23 @@ def test_gri_capped_at_100():
 # ---------------------------------------------------------------------------
 
 EXPECTED_KEYS = [
-    "tir", "titr", "tar", "tbr", "mage", "modd", "conga",
-    "lbgi", "hbgi", "gri", "gri_txt", "adrr",
-    "mean_glucose", "cv_percent", "gmi",
-    "days_of_data", "wear_percentage",
+    "tir",
+    "titr",
+    "tar",
+    "tbr",
+    "mage",
+    "modd",
+    "conga",
+    "lbgi",
+    "hbgi",
+    "gri",
+    "gri_txt",
+    "adrr",
+    "mean_glucose",
+    "cv_percent",
+    "gmi",
+    "days_of_data",
+    "wear_percentage",
 ]
 
 
@@ -174,8 +197,14 @@ def test_all_metrics_returns_expected_keys(glucose_df, cfg):
 
 def test_all_metrics_percentages_sum_to_100(glucose_df, cfg):
     m = compute_all_metrics(glucose_df, cfg)
-    total = m["very_low_pct"] + m["low_pct"] + m["tight_target_pct"] + \
-            m["above_tight_pct"] + m["high_pct"] + m["very_high_pct"]
+    total = (
+        m["very_low_pct"]
+        + m["low_pct"]
+        + m["tight_target_pct"]
+        + m["above_tight_pct"]
+        + m["high_pct"]
+        + m["very_high_pct"]
+    )
     assert total == pytest.approx(100.0, abs=1e-6)
 
 

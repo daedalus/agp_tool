@@ -36,7 +36,9 @@ def test_load_returns_dataframe_with_expected_columns(tmp_path, cfg):
 
 
 def test_load_raises_for_missing_columns(tmp_path, cfg):
-    bad = pd.DataFrame({"Timestamp": pd.date_range("2024-01-01", periods=5, freq="5min")})
+    bad = pd.DataFrame(
+        {"Timestamp": pd.date_range("2024-01-01", periods=5, freq="5min")}
+    )
     path = str(tmp_path / "bad.xlsx")
     _write_excel(path, bad)
     with pytest.raises(ValueError, match="Missing required columns"):
@@ -44,10 +46,12 @@ def test_load_raises_for_missing_columns(tmp_path, cfg):
 
 
 def test_load_raises_for_no_valid_rows(tmp_path, cfg):
-    df = pd.DataFrame({
-        "Time": ["not-a-date"] * 5,
-        "Sensor Reading(mg/dL)": [None] * 5,
-    })
+    df = pd.DataFrame(
+        {
+            "Time": ["not-a-date"] * 5,
+            "Sensor Reading(mg/dL)": [None] * 5,
+        }
+    )
     path = str(tmp_path / "empty.xlsx")
     _write_excel(path, df)
     with pytest.raises(ValueError, match="No valid glucose data"):
@@ -56,7 +60,7 @@ def test_load_raises_for_no_valid_rows(tmp_path, cfg):
 
 def test_load_clips_glucose_to_physiological_range(tmp_path, cfg):
     df = _valid_df(20)
-    df.loc[0, "Sensor Reading(mg/dL)"] = 5    # below 20
+    df.loc[0, "Sensor Reading(mg/dL)"] = 5  # below 20
     df.loc[1, "Sensor Reading(mg/dL)"] = 700  # above 600
     path = str(tmp_path / "clip.xlsx")
     _write_excel(path, df)
@@ -114,16 +118,17 @@ def test_unsupported_extension_raises_value_error(tmp_path, cfg):
 # Content-sniffing tests
 # ---------------------------------------------------------------------------
 
+
 def test_sniff_format_returns_xlsx_for_xlsx_file(tmp_path):
     path = str(tmp_path / "glucose.xlsx")
     _write_excel(path, _valid_df())
-    assert _sniff_format(path) == 'xlsx'
+    assert _sniff_format(path) == "xlsx"
 
 
 def test_sniff_format_returns_ods_for_ods_file(tmp_path):
     path = str(tmp_path / "glucose.ods")
     _write_ods(path, _valid_df())
-    assert _sniff_format(path) == 'ods'
+    assert _sniff_format(path) == "ods"
 
 
 def test_sniff_format_returns_none_for_csv(tmp_path):

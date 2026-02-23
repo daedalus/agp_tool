@@ -75,7 +75,7 @@ def compute_adrr(values, dates):
     df_risk = pd.DataFrame({"glucose": values, "date": dates})
     daily_risk_range = []
 
-    for date, group in df_risk.groupby("date"):
+    for _, group in df_risk.groupby("date"):
         if len(group) >= 12:  # At least 12 readings per day (every 2 hours)
             risks = risk_function(group["glucose"].values)
             daily_range = np.max(risks) - np.min(risks)

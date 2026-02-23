@@ -58,6 +58,8 @@ def export_metrics(metrics, export_path, report_header=None, verbose=False):
     })
 
     try:
+        if '../' in export_path or '..\\'  in export_path:
+            raise Exception('Invalid file path')
         if export_path.endswith('.json'):
             import json
             with open(export_path, 'w') as f:

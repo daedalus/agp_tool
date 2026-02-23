@@ -106,7 +106,6 @@ def test_load_ods_returns_expected_columns(tmp_path, cfg):
 
 
 def test_unsupported_extension_raises_value_error(tmp_path, cfg):
-    path = str(tmp_path / "glucose.txt")
     # Create a dummy file so the extension dispatch is reached
     path_obj = tmp_path / "glucose.txt"
     path_obj.write_text("dummy")

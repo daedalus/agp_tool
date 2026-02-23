@@ -1,5 +1,4 @@
 import argparse
-import pytest
 
 from agp.config import build_config
 

@@ -1,5 +1,4 @@
 import json
-import pytest
 import pandas as pd
 
 from agp.export import export_metrics

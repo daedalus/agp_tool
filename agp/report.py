@@ -92,7 +92,7 @@ def print_clinical_summary(metrics, report_header, cfg):
         print(
             f"  → Note: In this 'gray zone', the mean ({mean_glucose:.1f}) exceeds the median ({median_glucose:.1f})"
         )
-        print(f"  → The median better represents typical glucose exposure")
+        print("  → The median better represents typical glucose exposure")
     print("-" * 60)
     print("\nGlucose Distribution Summary:")
     print(f"  Very Low (<{VERY_LOW} mg/dL): {very_low_pct:.1f}%")

@@ -1,5 +1,4 @@
 import argparse
-import pytest
 
 from agp.report import create_report_header, print_clinical_summary
 

@@ -1,0 +1,28 @@
+name: Package Check
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+
+jobs:
+  package-check:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install build and twine
+        run: pip install build twine
+      - name: Build sdist and wheel
+        run: python -m build
+      - name: Check distribution with twine
+        run: twine check dist/*
+      - name: Install wheel and verify import
+        run: |
+          pip install dist/*.whl
+          python -c "import agp; print('agp version:', agp.__version__)"

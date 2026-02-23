@@ -5,4 +5,6 @@ __pycache__/
 dist/
 build/
 .eggs/
+.venv/
+venv/
 ambulatory_glucose_profile.png

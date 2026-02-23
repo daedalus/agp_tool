@@ -48,6 +48,12 @@ This tool generates a comprehensive Ambulatory Glucose Profile (AGP) with extend
 
 ## Installation
 
+Install from PyPI:
+
+```
+pip install agp
+```
+
 Install from source (editable mode, recommended for development):
 
 ```
@@ -59,6 +65,31 @@ Or install the dependencies only:
 ```
 pip install -r requirements.txt
 ```
+
+## Building and Publishing
+
+### Building locally
+
+Install the `build` tool and build sdist + wheel:
+
+```
+pip install build
+python -m build
+```
+
+The artifacts will be placed in the `dist/` directory.  Run `twine check dist/*`
+to verify the distribution metadata before publishing.
+
+### Publishing to PyPI
+
+Releases are published to PyPI automatically via GitHub Actions using
+[Trusted Publishing (OIDC)](https://docs.pypi.org/trusted-publishers/).  To
+trigger a release:
+
+1. Create and push a git tag (e.g. `v1.0.0`).
+2. Create a GitHub Release from that tag.
+3. The `Publish to PyPI` workflow will build and upload the distribution
+   artifacts automatically — no API token required.
 
 ## Library usage
 

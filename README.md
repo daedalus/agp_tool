@@ -51,7 +51,7 @@ This tool generates a comprehensive Ambulatory Glucose Profile (AGP) with extend
 Install from PyPI:
 
 ```
-pip install agp
+pip install agp_tool
 ```
 
 Install from source (editable mode, recommended for development):

@@ -246,7 +246,7 @@ options:
 
 Basic usage
 
-`python main.py data.xlsx`
+`agp data.xlsx`
 
 Or with CSV/ODS input
 

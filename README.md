@@ -1,60 +1,60 @@
 # Ambulatory glucose profile analysis tool
 
-## DISCLAIMER ##
+## DISCLAIMER
 
 This tool is for research and educational purposes only. It is NOT a medical device and has NOT been validated for clinical diagnosis or treatment decisions.
 
 Do not adjust medications, change diet, or make health decisions based solely on this output. Exercise caution and always consult a qualified healthcare professional for interpretation of glucose data and any treatment adjustments.
 
-## Overview ##
+## Overview
 
 This tool generates a comprehensive Ambulatory Glucose Profile (AGP) with extended clinical metrics, including Time in Tight Range (TITR) metric. It processes continuous glucose monitoring (CGM) data and produces both a visual AGP plot and detailed statistical analysis.
 
-## Features ##
+## Features
 
-### General ###
+### General
 
 - Full AGP visualization with percentile curves (5-95%, IQR)
 - Rate of Change (ROC) profile
 - Circadian binning for time-of-day patterns
 - Circadian glucose heatmap
 
-### Time in Range metrics with level breakdowns ###
+### Time in Range metrics with level breakdowns
 
 - TIR (70-180 mg/dL)
 - TITR (70-140 mg/dL) - Tight target
 - TAR with Level 1 (181-250) and Level 2 (>250)
 - TBR with Level 1 (54-69) and Level 2 (<54)
 
-### Advanced variability metrics ###
+### Advanced variability metrics
 
 - MAGE (Mean Amplitude of Glycemic Excursions)
 - MODD (Mean of Daily Differences)
 - CONGA (Continuous Overall Net Glycemic Action)
 
-### Risk indices ###
+### Risk indices
 
 - LBGI (Low Blood Glucose Index)
 - HBGI (High Blood Glucose Index)
 - ADRR (Average Daily Risk Range)
 
-### AUC analysis ####
+### AUC analysis
 
 - total, above range, below range
 
-### Data quality assessment ###
+### Data quality assessment
 
 - wear time, reading frequency
 
-## Requirements ##
+## Requirements
 
-### Packages ###
+### Packages
 
 `pip install -r requirements.txt`
 
 Dependencies include `pandas`, `numpy`, `matplotlib`, `openpyxl` (xlsx), `xlrd` (xls), and `odfpy` (ods).
 
-## Input Data Format ###
+## Input Data Format
 
 Supported file formats:
 
@@ -65,12 +65,12 @@ Supported file formats:
 | `.csv` | Comma-separated values |
 | `.ods` | OpenDocument Spreadsheet |
 
-## Required columns ###
+## Required columns
 
 - **Date time** 
 - **Sensor Reading(mg/dL)**: numeric glucose values
 
-## Usage ##
+## Usage
 
 ```
 usage: main.py [-h] [--output OUTPUT] [--very-low-threshold VERY_LOW_THRESHOLD] [--low-threshold LOW_THRESHOLD] [--high-threshold HIGH_THRESHOLD]
@@ -121,7 +121,7 @@ options:
                         Colormap for circadian heatmap (default: RdYlGn_r, requires --heatmap)
 ```
 
-### Examples ###
+### Examples
 
 Basic usage
 
@@ -153,13 +153,13 @@ See all options
 
 `python main.py -h`
 
-### Example output ###
+### Example output
 
 ![Example](files/ambulatory_glucose_profile.png)
 
-## Metrics Explained ##
+## Metrics Explained
 
-### Core Metrics ###
+### Core Metrics
 
 Metric	Description	Clinical Target
 
@@ -170,7 +170,7 @@ Metric	Description	Clinical Target
 - GMI	Glucose Management Indicator	below 7%
 - J-Index	Combined mean + variability	n/a
 
-### Variability Metrics ###
+### Variability Metrics
 
 Metric	Description
 
@@ -178,7 +178,7 @@ Metric	Description
 - MODD	Day-to-day glucose variability
 - CONGA	Intra-day glycemic variability (1h lag)
 
-## Risk Metrics ###
+## Risk Metrics
 
 Metric	Description
 
@@ -187,7 +187,7 @@ Metric	Description
 - GRI	Glycemia risk index
 - ADRR	Average Daily Risk Range
 
-### Data Quality ###
+### Data Quality
 
 Metric	Description	Warning Threshold
 
@@ -195,7 +195,7 @@ Metric	Description	Warning Threshold
 - Wear time	% of possible readings	<70%
 - Severe hypo/week	Events <40 mg/dL per week	n/a
 
-## Configuration ##
+## Configuration
 
 Key parameters at script top:
 
@@ -206,14 +206,14 @@ Key parameters at script top:
 - BIN_MINUTES = 5		# Time bin size for AGP
 - ROC_CLIP = 10		# Rate of change physiological limit
 
-## Limitations & Warnings ##
+## Limitations & Warnings
 
 - Minimum data: AGP typically requires ≥5 days for reliability
 - Data gaps: Long gaps (>2 hours) may affect MODD and ADRR calculations
 - Sensor accuracy: Assumes CGM-grade data; fingerstick data may have limitations
 - MAGE calculation: Uses smoothed data; may differ from manual calculation
 
-## Interpretation Tips ##
+## Interpretation Tips
 
 - TITR >50% suggests acceptable glycemic control
 - TBR >4% indicates need for hypoglycemia prevention
@@ -222,11 +222,11 @@ Key parameters at script top:
 - ROC spikes indicate rapid changes; correlate with meals/exercise
 - GMI < 7.0%: Suggests acceptable glycemic control (Note: GMI estimates A1c from CGM data, but may differ from lab A1c).
 
-## References ##
+## References
 
 Continuous Glucose Monitoring (CGM) Metrics – Verified References
 
-### Ambulatory Glucose Profile (AGP) ###
+### Ambulatory Glucose Profile (AGP)
 
 1. Mazze RS, Lucido D, Langer O, Hartmann K, Rodbard D.  
    *Ambulatory glucose profile: representation of verified self-monitored blood glucose data.*  
@@ -244,7 +244,7 @@ Continuous Glucose Monitoring (CGM) Metrics – Verified References
    DOI: 10.2337/dci19-0028
 
 
-### Time in Range (TIR, TBR, TAR) ###
+### Time in Range (TIR, TBR, TAR)
 
 4. Battelino T, Danne T, Bergenstal RM, et al.  
    *Clinical Targets for Continuous Glucose Monitoring Data Interpretation: Recommendations From the International Consensus on Time in Range.*  
@@ -252,7 +252,7 @@ Continuous Glucose Monitoring (CGM) Metrics – Verified References
    DOI: 10.2337/dci19-0028
 
 
-### Coefficient of Variation (CV) ###
+### Coefficient of Variation (CV)
 
 5. Monnier L, Colette C, Wojtusciszyn A, et al.  
    *Glycemic variability: should we and can we prevent it?*  
@@ -260,7 +260,7 @@ Continuous Glucose Monitoring (CGM) Metrics – Verified References
    DOI: 10.2337/dc08-s241
 
 
-### Glucose Management Indicator (GMI) ###
+### Glucose Management Indicator (GMI)
 
 6. Bergenstal RM, Beck RW, Close KL, et al.  
    *Glucose Management Indicator (GMI): A New Term for Estimating A1C From Continuous Glucose Monitoring.*  
@@ -268,7 +268,7 @@ Continuous Glucose Monitoring (CGM) Metrics – Verified References
    DOI: 10.2337/dc18-0734
 
 
-### J-Index ###
+### J-Index
 
 7. Wojcicki JM.  
    *J-Index: a new proposition of the assessment of current glucose control in diabetic patients.*  
@@ -276,7 +276,7 @@ Continuous Glucose Monitoring (CGM) Metrics – Verified References
    DOI: 10.1055/s-2007-979927
 
 
-### MAGE (Mean Amplitude of Glycemic Excursions) ###
+### MAGE (Mean Amplitude of Glycemic Excursions)
 
 8. Service FJ, Molnar GD, Rosevear JW, Ackerman E, Gatewood LC, Taylor WF.  
    *Mean amplitude of glycemic excursions, a measure of diabetic instability.*  
@@ -284,7 +284,7 @@ Continuous Glucose Monitoring (CGM) Metrics – Verified References
    DOI: 10.2337/diab.19.9.644
 
 
-### MODD (Mean of Daily Differences) ###
+### MODD (Mean of Daily Differences)
 
 9. Molnar GD, Taylor WF, Ho MM.  
    *Day-to-day variation of continuously monitored glycaemia: a further measure of diabetic instability.*  
@@ -292,7 +292,7 @@ Continuous Glucose Monitoring (CGM) Metrics – Verified References
    DOI: 10.1007/BF01218495
 
 
-### CONGA (Continuous Overall Net Glycemic Action) ###
+### CONGA (Continuous Overall Net Glycemic Action)
 
 10. McDonnell CM, Donath SM, Vidmar SI, Werther GA, Cameron FJ.  
     *A novel approach to continuous glucose analysis utilizing glycemic variation.*  
@@ -300,7 +300,7 @@ Continuous Glucose Monitoring (CGM) Metrics – Verified References
     DOI: 10.1089/dia.2005.7.253
 
 
-### LBGI & HBGI (Low/High Blood Glucose Index) ###
+### LBGI & HBGI (Low/High Blood Glucose Index)
 
 11. Kovatchev BP, Cox DJ, Gonder-Frederick LA, Clarke WL.  
     *Assessment of risk for severe hypoglycemia among patients with type 1 and type 2 diabetes using self-monitoring blood glucose data.*  
@@ -308,7 +308,7 @@ Continuous Glucose Monitoring (CGM) Metrics – Verified References
     DOI: 10.2337/diacare.24.11.1870
 
 
-### ADRR (Average Daily Risk Range) ###
+### ADRR (Average Daily Risk Range)
 
 12. Kovatchev BP, Otto E, Cox D, et al.  
     *The average daily risk range: a new measure of glycemic variability.*  
@@ -316,6 +316,6 @@ Continuous Glucose Monitoring (CGM) Metrics – Verified References
     DOI: 10.2337/dc06-1085
 
 
-## License ##
+## License
 
 This project is licensed under the MIT License – see the [LICENSE](LICENSE) file for details.

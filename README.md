@@ -52,7 +52,7 @@ This tool generates a comprehensive Ambulatory Glucose Profile (AGP) with extend
 
 `pip install -r requirements.txt`
 
-Dependencies include `pandas`, `numpy`, `matplotlib`, `openpyxl` (xlsx), `xlrd` (xls), and `odfpy` (ods).
+Dependencies include `pandas`, `numpy`, `matplotlib`, `openpyxl` (xlsx), `xlrd` (xls), `odfpy` (ods), `Pillow` (image reading), and `fpdf2` (PDF generation).
 
 ## Input Data Format
 
@@ -77,6 +77,7 @@ usage: main.py [-h] [--output OUTPUT] [--very-low-threshold VERY_LOW_THRESHOLD] 
                [--very-high-threshold VERY_HIGH_THRESHOLD] [--tight-low TIGHT_LOW] [--tight-high TIGHT_HIGH] [--bin-minutes BIN_MINUTES]
                [--sensor-interval SENSOR_INTERVAL] [--min-samples MIN_SAMPLES] [--no-plot] [--verbose] [--export EXPORT] [--config CONFIG] [--version]
                [--patient-name PATIENT_NAME] [--patient-id PATIENT_ID] [--doctor DOCTOR] [--notes NOTES] [--heatmap] [--heatmap-cmap HEATMAP_CMAP]
+               [--pdf]
                input_file
 
 Generate Ambulatory Glucose Profile from sensor data
@@ -119,6 +120,7 @@ options:
   --heatmap             Enable the circadian glucose heatmap (disabled by default)
   --heatmap-cmap HEATMAP_CMAP
                         Colormap for circadian heatmap (default: RdYlGn_r, requires --heatmap)
+  --pdf                 Also produce a PDF file with the PNG embedded as an image and metadata copied from the PNG
 ```
 
 ### Examples
@@ -144,6 +146,10 @@ Custom tight range and bin size
 Calculate only metrics, no plot
 
 `python main.py data.xlsx --no-plot --verbose`
+
+Generate PNG and also export a PDF
+
+`python main.py data.xlsx --pdf`
 
 With config file
 

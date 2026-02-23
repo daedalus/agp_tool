@@ -122,6 +122,11 @@ def build_parser():
         default="RdYlGn_r",
         help="Colormap for circadian heatmap (default: RdYlGn_r, requires --heatmap)",
     )
+    parser.add_argument(
+        "--pdf",
+        action="store_true",
+        help="Also produce a PDF file with the PNG embedded as an image and metadata copied from the PNG",
+    )
 
     return parser
 

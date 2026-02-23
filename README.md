@@ -46,6 +46,94 @@ This tool generates a comprehensive Ambulatory Glucose Profile (AGP) with extend
 
 - wear time, reading frequency
 
+## Installation
+
+Install from source (editable mode, recommended for development):
+
+```
+pip install -e .
+```
+
+Or install the dependencies only:
+
+```
+pip install -r requirements.txt
+```
+
+## Library usage
+
+`agp` is designed to be used both as a CLI tool and as an importable Python
+library.  The public entry-point is `generate_report`, which accepts every
+option available in the CLI and returns a `matplotlib.figure.Figure`.
+
+```python
+import matplotlib
+matplotlib.use("Agg")          # use non-interactive backend when no display is available
+
+from agp import generate_report
+
+# Basic call – returns a Figure and saves ambulatory_glucose_profile.png
+fig = generate_report("data.csv")
+
+# Custom thresholds, patient info, and export
+fig = generate_report(
+    "data.xlsx",
+    output="my_report.png",
+    low_threshold=65,
+    high_threshold=200,
+    patient_name="Jane Doe",
+    patient_id="P-001",
+    doctor="Dr. Smith",
+    export="metrics.json",
+)
+
+# The returned Figure can be used directly with matplotlib
+fig.savefig("report.png", dpi=150, bbox_inches="tight")
+
+# Skip plot generation (returns None)
+result = generate_report("data.csv", no_plot=True)
+assert result is None
+
+# Enable the circadian heatmap
+fig = generate_report("data.csv", heatmap=True, heatmap_cmap="coolwarm")
+
+# Show interactively (e.g. in a Jupyter notebook)
+fig = generate_report("data.csv", show=True)
+```
+
+`generate_report` does **not** call `plt.show()` or `plt.close()` by default,
+so it is safe to use inside automated pipelines and Jupyter notebooks without
+popping up GUI windows.
+
+### Parameters
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `input_file` | str | *(required)* | Path to glucose data file |
+| `output` | str | `"ambulatory_glucose_profile.png"` | Output PNG path |
+| `very_low_threshold` | int | 54 | Very low glucose threshold (mg/dL) |
+| `low_threshold` | int | 70 | Low glucose threshold (mg/dL) |
+| `high_threshold` | int | 180 | High glucose threshold (mg/dL) |
+| `very_high_threshold` | int | 250 | Very high glucose threshold (mg/dL) |
+| `tight_low` | int | 70 | Tight range lower limit (mg/dL) |
+| `tight_high` | int | 140 | Tight range upper limit (mg/dL) |
+| `bin_minutes` | int | 5 | Circadian bin size in minutes |
+| `sensor_interval` | int | 5 | CGM sensor interval in minutes |
+| `min_samples` | int | 5 | Minimum samples per bin |
+| `no_plot` | bool | `False` | Skip plot; return `None` |
+| `verbose` | bool | `False` | Print detailed progress |
+| `export` | str | `""` | Export metrics to `.json` / `.csv` path |
+| `config` | str\|None | `None` | JSON config file path (same as CLI `--config`) |
+| `patient_name` | str | `"Unknown"` | Patient name for report header |
+| `patient_id` | str | `"N/A"` | Patient ID for report header |
+| `doctor` | str | `""` | Doctor name for report header |
+| `notes` | str | `""` | Additional notes for report header |
+| `heatmap` | bool | `False` | Enable circadian glucose heatmap |
+| `heatmap_cmap` | str | `"RdYlGn_r"` | Colormap for the heatmap |
+| `pdf` | bool | `False` | Also produce a PDF alongside the PNG |
+| `show` | bool | `False` | Call `plt.show()` (interactive use only) |
+| `close` | bool | `False` | Call `plt.close()` after building figure |
+
 ## Requirements
 
 ### Packages

@@ -59,8 +59,26 @@ def build_agp_profile(df, cfg):
     return result
 
 
-def generate_agp_plot(df, result, metrics, cfg, args, report_header):
-    """Render and save the full AGP figure."""
+def generate_agp_plot(df, result, metrics, cfg, args, report_header, *, output_path=None, show=False, close=False):
+    """Render the full AGP figure and return it.
+
+    Args:
+        df: Preprocessed glucose DataFrame.
+        result: AGP profile DataFrame from :func:`build_agp_profile`.
+        metrics: Metrics dict from :func:`compute_all_metrics`.
+        cfg: Configuration dict from :func:`build_config`.
+        args: argparse Namespace (or None) supplying ``heatmap``,
+            ``heatmap_cmap``, ``output``, and ``verbose`` attributes.
+        report_header: Report header dict from :func:`create_report_header`.
+        output_path: If given, save the figure to this path (overrides
+            ``args.output``).  Pass ``None`` (and ensure ``args.output`` is
+            also ``None`` / falsy) to skip saving entirely.
+        show: If ``True`` call ``plt.show()`` after building the figure.
+        close: If ``True`` call ``plt.close()`` after building the figure.
+
+    Returns:
+        matplotlib.figure.Figure: The completed AGP figure.
+    """
     VERY_LOW = cfg["VERY_LOW"]
     LOW = cfg["LOW"]
     HIGH = cfg["HIGH"]
@@ -633,8 +651,13 @@ def generate_agp_plot(df, result, metrics, cfg, args, report_header):
         alpha=0.7,
     )
 
-    plt.savefig(args.output, dpi=300, bbox_inches="tight", metadata=metadata)
-    if args.verbose:
-        print(f"Plot saved to: {args.output}")
-    plt.show()
-    plt.close()
+    _save_path = output_path if output_path is not None else getattr(args, "output", None)
+    if _save_path:
+        plt.savefig(_save_path, dpi=300, bbox_inches="tight", metadata=metadata)
+        if getattr(args, "verbose", False):
+            print(f"Plot saved to: {_save_path}")
+    if show:
+        plt.show()
+    if close:
+        plt.close()
+    return fig

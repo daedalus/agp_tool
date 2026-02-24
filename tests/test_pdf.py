@@ -1,20 +1,17 @@
 """Tests for agp.pdf: PNG-to-PDF conversion with metadata."""
-import io
-import datetime
-import re
-import tempfile
-import os
 
-import pytest
+import os
+import re
+
 from PIL import Image
 from PIL.PngImagePlugin import PngInfo
 
-from agp.pdf import read_png_metadata, png_to_pdf
-
+from agp.pdf import png_to_pdf, read_png_metadata
 
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
+
 
 def _make_png(tmp_path, width=200, height=100, dpi=96, **text_fields):
     """Create a minimal PNG file and return its path."""
@@ -56,6 +53,7 @@ def _parse_mediabox(pdf_data):
 # read_png_metadata
 # ---------------------------------------------------------------------------
 
+
 class TestReadPngMetadata:
     def test_all_fields_present(self, tmp_path):
         png = _make_png(
@@ -82,8 +80,16 @@ class TestReadPngMetadata:
     def test_missing_fields_are_none(self, tmp_path):
         png = _make_png(tmp_path)  # no text fields
         meta = read_png_metadata(png)
-        for field in ("Title", "Description", "Author", "Keywords",
-                      "CreationTime", "Software", "Copyright", "License"):
+        for field in (
+            "Title",
+            "Description",
+            "Author",
+            "Keywords",
+            "CreationTime",
+            "Software",
+            "Copyright",
+            "License",
+        ):
             assert meta[field] is None, f"Expected None for {field}"
 
     def test_partial_fields(self, tmp_path):
@@ -98,6 +104,7 @@ class TestReadPngMetadata:
 # ---------------------------------------------------------------------------
 # png_to_pdf — file creation
 # ---------------------------------------------------------------------------
+
 
 class TestPngToPdfCreatesFile:
     def test_creates_pdf_file(self, tmp_path):
@@ -123,6 +130,7 @@ class TestPngToPdfCreatesFile:
 # ---------------------------------------------------------------------------
 # png_to_pdf — metadata in PDF
 # ---------------------------------------------------------------------------
+
 
 class TestPngToPdfMetadata:
     def test_title_in_pdf(self, tmp_path):
@@ -200,6 +208,7 @@ class TestPngToPdfMetadata:
 # png_to_pdf — page size and image placement
 # ---------------------------------------------------------------------------
 
+
 class TestPngToPdfPageSize:
     def test_page_size_matches_png_with_dpi(self, tmp_path):
         """PDF page dimensions must equal pixel_size * 72 / dpi (points)."""
@@ -265,15 +274,18 @@ class TestPngToPdfPageSize:
 # CLI — --pdf flag
 # ---------------------------------------------------------------------------
 
+
 class TestCliPdfFlag:
     def test_pdf_defaults_false(self):
         from agp.cli import build_parser
+
         parser = build_parser()
         args = parser.parse_args(["dummy.xlsx"])
         assert args.pdf is False
 
     def test_pdf_set_when_passed(self):
         from agp.cli import build_parser
+
         parser = build_parser()
         args = parser.parse_args(["dummy.xlsx", "--pdf"])
         assert args.pdf is True

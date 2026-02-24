@@ -1,8 +1,8 @@
 import json
+
 import pandas as pd
 
 from agp.export import export_metrics
-
 
 SAMPLE_METRICS = {
     "days_of_data": 7.0,

@@ -37,9 +37,9 @@ def _build_xmp(meta):
     if rights:
         escaped = rights.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
         parts.append(
-            f'    <dc:rights><rdf:Alt>'
+            f"    <dc:rights><rdf:Alt>"
             f'<rdf:li xml:lang="x-default">{escaped}</rdf:li>'
-            f'</rdf:Alt></dc:rights>'
+            f"</rdf:Alt></dc:rights>"
         )
     if license_url:
         escaped_url = (

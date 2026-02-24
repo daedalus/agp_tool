@@ -126,7 +126,7 @@ def generate_report(
     # Apply JSON config file overrides (mirrors CLI behaviour).
     if config:
         try:
-            with open(config, "r") as f:
+            with open(config) as f:
                 cfg_overrides = json.load(f)
             for key, value in cfg_overrides.items():
                 if hasattr(args, key):

@@ -45,7 +45,18 @@ agp = "agp.main:main"
 
 [project.optional-dependencies]
 test = ["pytest>=7.0", "pytest-cov"]
+dev = ["black>=24.0", "ruff>=0.4.0"]
 
 [tool.setuptools.packages.find]
 where = ["."]
 include = ["agp*"]
+
+[tool.black]
+line-length = 88
+
+[tool.ruff]
+line-length = 88
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "UP"]
+ignore = ["E501"]

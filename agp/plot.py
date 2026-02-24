@@ -1,6 +1,6 @@
+import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-import matplotlib.pyplot as plt
 from matplotlib.gridspec import GridSpec
 
 
@@ -59,7 +59,18 @@ def build_agp_profile(df, cfg):
     return result
 
 
-def generate_agp_plot(df, result, metrics, cfg, args, report_header, *, output_path=None, show=False, close=False):
+def generate_agp_plot(
+    df,
+    result,
+    metrics,
+    cfg,
+    args,
+    report_header,
+    *,
+    output_path=None,
+    show=False,
+    close=False,
+):
     """Render the full AGP figure and return it.
 
     Args:
@@ -651,7 +662,9 @@ def generate_agp_plot(df, result, metrics, cfg, args, report_header, *, output_p
         alpha=0.7,
     )
 
-    _save_path = output_path if output_path is not None else getattr(args, "output", None)
+    _save_path = (
+        output_path if output_path is not None else getattr(args, "output", None)
+    )
     if _save_path:
         plt.savefig(_save_path, dpi=300, bbox_inches="tight", metadata=metadata)
         if getattr(args, "verbose", False):

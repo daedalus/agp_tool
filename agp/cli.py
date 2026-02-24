@@ -1,6 +1,6 @@
 import argparse
 import json
-from importlib.metadata import version, PackageNotFoundError
+from importlib.metadata import PackageNotFoundError, version
 
 try:
     __version__ = version("agp")
@@ -138,7 +138,7 @@ def parse_args():
 
     if args.config:
         try:
-            with open(args.config, "r") as f:
+            with open(args.config) as f:
                 config = json.load(f)
                 for key, value in config.items():
                     if hasattr(args, key):

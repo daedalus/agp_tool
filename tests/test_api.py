@@ -1,11 +1,9 @@
 """Tests for the public generate_report() API."""
 
-import io
 import os
 
 import matplotlib
 import matplotlib.figure
-import pandas as pd
 import pytest
 
 matplotlib.use("Agg")
@@ -83,9 +81,7 @@ def test_generate_report_with_config_override(glucose_csv, tmp_path):
 
     cfg_path = tmp_path / "cfg.json"
     cfg_path.write_text(json.dumps({"low_threshold": 65}))
-    fig = generate_report(
-        glucose_csv, config=str(cfg_path), show=False, close=False
-    )
+    fig = generate_report(glucose_csv, config=str(cfg_path), show=False, close=False)
     assert isinstance(fig, matplotlib.figure.Figure)
 
 

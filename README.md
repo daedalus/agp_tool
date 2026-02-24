@@ -443,6 +443,33 @@ Continuous Glucose Monitoring (CGM) Metrics – Verified References
     DOI: 10.2337/dc06-1085
 
 
+## Contributing
+
+### Code style
+
+This project uses [Black](https://black.readthedocs.io/) for formatting and [Ruff](https://docs.astral.sh/ruff/) for linting.
+
+Install the development tools:
+
+```
+pip install -e ".[dev]"
+```
+
+Check and apply formatting:
+
+```
+black .
+```
+
+Run the linter (and auto-fix safe issues):
+
+```
+ruff check .
+ruff check --fix .
+```
+
+Both tools are enforced in CI – PRs must pass `black --check .` and `ruff check .` before merging.
+
 ## License
 
 This project is licensed under the MIT License – see the [LICENSE](LICENSE) file for details.

@@ -1,8 +1,9 @@
 import os
 import sys
 import zipfile
-import pandas as pd
+
 import numpy as np
+import pandas as pd
 
 # Magic-byte signatures for binary spreadsheet formats.
 _OLE2_MAGIC = (

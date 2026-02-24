@@ -284,7 +284,7 @@ See all options
 
 ### Example output
 
-![Example](files/ambulatory_glucose_profile.png)
+![Example](examples/ambulatory_glucose_profile.png)
 
 ## Metrics Explained
 

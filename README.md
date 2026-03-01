@@ -22,6 +22,7 @@ This application should work with data from any CGM, however it was only tested 
 - Rate of Change (ROC) profile
 - Circadian binning for time-of-day patterns
 - Circadian glucose heatmap
+- Daily overlay graph (each day as a separate colored line)
 
 ### Time in Range metrics with level breakdowns
 
@@ -132,6 +133,9 @@ assert result is None
 # Enable the circadian heatmap
 fig = generate_report("data.csv", heatmap=True, heatmap_cmap="coolwarm")
 
+# Generate the main AGP report and a daily overlay graph
+fig = generate_report("data.csv", daily_plot=True)
+
 # Show interactively (e.g. in a Jupyter notebook)
 fig = generate_report("data.csv", show=True)
 ```
@@ -166,6 +170,7 @@ popping up GUI windows.
 | `heatmap` | bool | `False` | Enable circadian glucose heatmap |
 | `heatmap_cmap` | str | `"RdYlGn_r"` | Colormap for the heatmap |
 | `pdf` | bool | `False` | Also produce a PDF alongside the PNG |
+| `daily_plot` | bool | `False` | Generate a daily overlay plot (each day as a separate colored line, saved as `<stem>_daily.<ext>`) |
 | `show` | bool | `False` | Call `plt.show()` (interactive use only) |
 | `close` | bool | `False` | Call `plt.close()` after building figure |
 
@@ -244,6 +249,7 @@ options:
   --heatmap-cmap HEATMAP_CMAP
                         Colormap for circadian heatmap (default: RdYlGn_r, requires --heatmap)
   --pdf                 Also produce a PDF file with the PNG embedded as an image and metadata copied from the PNG. The PDF page size matches the source PNG dimensions exactly (derived from the PNG pHYs DPI metadata, defaulting to 72 DPI), with no margins, so the image is never cropped.
+  --daily-plot          Generate an additional daily overlay plot where each day is shown as a separate colored line
 ```
 
 ### Examples
@@ -273,6 +279,12 @@ Calculate only metrics, no plot
 Generate PNG and also export a PDF
 
 `agp_tool data.xlsx --pdf`
+
+Generate the main AGP report **and** a daily overlay graph
+
+`agp_tool data.xlsx --daily-plot`
+
+The daily overlay is saved as `<output-stem>_daily.<ext>` (e.g. `ambulatory_glucose_profile_daily.png`).  Each calendar day in the dataset is drawn as a separate colored line so that day-to-day glucose patterns can be compared at a glance.
 
 With config file
 

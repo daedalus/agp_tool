@@ -20,7 +20,7 @@ from .data import load_and_preprocess
 from .export import export_metrics
 from .metrics import compute_all_metrics
 from .pdf import png_to_pdf
-from .plot import build_agp_profile, generate_agp_plot
+from .plot import build_agp_profile, generate_agp_plot, generate_daily_plot
 from .report import create_report_header, print_clinical_summary
 
 
@@ -47,6 +47,7 @@ def generate_report(
     heatmap=False,
     heatmap_cmap="RdYlGn_r",
     pdf=False,
+    daily_plot=False,
     show=False,
     close=False,
 ):
@@ -87,6 +88,10 @@ def generate_report(
         heatmap_cmap (str): Colormap name for the circadian heatmap.
             Default: ``"RdYlGn_r"``.
         pdf (bool): Also produce a PDF file alongside the PNG. Default: ``False``.
+        daily_plot (bool): Generate an additional daily overlay plot where each
+            day is shown as a separate colored line.  The figure is saved next
+            to *output* with ``_daily`` appended before the extension.
+            Default: ``False``.
         show (bool): Call ``plt.show()`` after building the figure.
             Set to ``True`` only when running interactively.  Default: ``False``.
         close (bool): Call ``plt.close()`` after building the figure.
@@ -121,6 +126,7 @@ def generate_report(
         heatmap=heatmap,
         heatmap_cmap=heatmap_cmap,
         pdf=pdf,
+        daily_plot=daily_plot,
     )
 
     # Apply JSON config file overrides (mirrors CLI behaviour).
@@ -159,8 +165,22 @@ def generate_report(
             png_to_pdf(output, pdf_path)
             if verbose:
                 print(f"PDF saved to: {pdf_path}")
+
+    if daily_plot and not no_plot:
+        base, ext = output.rsplit(".", 1) if "." in output else (output, "png")
+        daily_output = f"{base}_daily.{ext}"
+        args.daily_plot_output = daily_output
+        generate_daily_plot(
+            df,
+            cfg,
+            args,
+            report_header,
+            show=show,
+            close=close,
+        )
     elif verbose:
-        print("Plot generation skipped (no_plot=True)")
+        if no_plot:
+            print("Plot generation skipped (no_plot=True)")
 
     print_clinical_summary(metrics, report_header, cfg)
 

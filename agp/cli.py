@@ -127,6 +127,11 @@ def build_parser():
         action="store_true",
         help="Also produce a PDF file with the PNG embedded as an image and metadata copied from the PNG",
     )
+    parser.add_argument(
+        "--daily-plot",
+        action="store_true",
+        help="Generate an additional daily overlay plot where each day is shown as a separate colored line",
+    )
 
     return parser
 

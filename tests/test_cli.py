@@ -90,3 +90,15 @@ def test_heatmap_set_when_passed():
     parser = build_parser()
     args = parser.parse_args(["dummy.xlsx", "--heatmap"])
     assert args.heatmap is True
+
+
+def test_daily_plot_defaults_false():
+    parser = build_parser()
+    args = parser.parse_args(["dummy.xlsx"])
+    assert args.daily_plot is False
+
+
+def test_daily_plot_set_when_passed():
+    parser = build_parser()
+    args = parser.parse_args(["dummy.xlsx", "--daily-plot"])
+    assert args.daily_plot is True

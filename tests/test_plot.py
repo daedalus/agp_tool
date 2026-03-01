@@ -6,7 +6,12 @@ import pandas as pd
 import pytest
 
 from agp.metrics import compute_all_metrics
-from agp.plot import build_agp_profile, format_date_range, generate_agp_plot
+from agp.plot import (
+    build_agp_profile,
+    format_date_range,
+    generate_agp_plot,
+    generate_daily_plot,
+)
 
 
 def _make_plot_args(**overrides):
@@ -98,3 +103,55 @@ def test_format_date_range_empty():
         }
     )
     assert format_date_range(df) == "N/A"
+
+
+# --- generate_daily_plot tests ---
+
+
+def test_daily_plot_returns_figure(df_with_roc, cfg, report_header):
+    """generate_daily_plot returns a matplotlib Figure."""
+    args = _make_plot_args()
+    with (
+        patch("matplotlib.pyplot.savefig"),
+        patch("matplotlib.pyplot.show"),
+        patch("matplotlib.pyplot.close"),
+    ):
+        fig = generate_daily_plot(df_with_roc, cfg, args, report_header)
+    import matplotlib.figure
+
+    assert isinstance(fig, matplotlib.figure.Figure)
+
+
+def test_daily_plot_one_line_per_day(df_with_roc, cfg, report_header):
+    """generate_daily_plot draws one line per unique calendar day."""
+    args = _make_plot_args()
+    with (
+        patch("matplotlib.pyplot.savefig"),
+        patch("matplotlib.pyplot.show"),
+        patch("matplotlib.pyplot.close"),
+    ):
+        fig = generate_daily_plot(df_with_roc, cfg, args, report_header)
+
+    ax = fig.get_axes()[0]
+    expected_days = df_with_roc["Time"].dt.date.nunique()
+    # Day lines carry many data points; threshold/band lines carry ≤2
+    day_lines = [ln for ln in ax.get_lines() if len(ln.get_xdata()) > 10]
+    assert len(day_lines) == expected_days
+
+
+def test_daily_plot_distinct_colors(df_with_roc, cfg, report_header):
+    """Each day line in generate_daily_plot uses a distinct color."""
+    import matplotlib.colors as mcolors
+
+    args = _make_plot_args()
+    with (
+        patch("matplotlib.pyplot.savefig"),
+        patch("matplotlib.pyplot.show"),
+        patch("matplotlib.pyplot.close"),
+    ):
+        fig = generate_daily_plot(df_with_roc, cfg, args, report_header)
+
+    ax = fig.get_axes()[0]
+    day_lines = [ln for ln in ax.get_lines() if len(ln.get_xdata()) > 10]
+    colors = [mcolors.to_rgba(ln.get_color()) for ln in day_lines]
+    assert len(colors) == len(set(colors)), "Day lines must have distinct colors"

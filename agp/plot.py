@@ -2,6 +2,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 from matplotlib.gridspec import GridSpec
+from matplotlib.lines import Line2D
 
 
 def format_date_range(df):
@@ -669,6 +670,187 @@ def generate_agp_plot(
         plt.savefig(_save_path, dpi=300, bbox_inches="tight", metadata=metadata)
         if getattr(args, "verbose", False):
             print(f"Plot saved to: {_save_path}")
+    if show:
+        plt.show()
+    if close:
+        plt.close()
+    return fig
+
+
+def generate_daily_plot(
+    df,
+    cfg,
+    args,
+    report_header,
+    *,
+    output_path=None,
+    show=False,
+    close=False,
+):
+    """Render a daily overlay plot and return it.
+
+    Each calendar day in *df* is drawn as a separate line in a distinct color,
+    with time-of-day (00:00–24:00) on the X-axis so that day-to-day patterns
+    can be compared directly.
+
+    Args:
+        df: Preprocessed glucose DataFrame with ``Time`` and
+            ``Sensor Reading(mg/dL)`` columns.
+        cfg: Configuration dict from :func:`build_config`.
+        args: argparse Namespace (or None) supplying ``output`` and ``verbose``
+            attributes.
+        report_header: Report header dict from :func:`create_report_header`.
+        output_path: If given, save the figure to this path.  Pass ``None``
+            (and ensure ``args.output`` is also ``None`` / falsy) to skip
+            saving entirely.
+        show: If ``True`` call ``plt.show()`` after building the figure.
+        close: If ``True`` call ``plt.close()`` after building the figure.
+
+    Returns:
+        matplotlib.figure.Figure: The completed daily overlay figure.
+    """
+    VERY_LOW = cfg["VERY_LOW"]
+    LOW = cfg["LOW"]
+    HIGH = cfg["HIGH"]
+    VERY_HIGH = cfg["VERY_HIGH"]
+    TIGHT_LOW = cfg["TIGHT_LOW"]
+    TIGHT_HIGH = cfg["TIGHT_HIGH"]
+
+    df = df.copy()
+    df["date"] = df["Time"].dt.date
+    df["minutes"] = (
+        df["Time"].dt.hour * 60 + df["Time"].dt.minute + df["Time"].dt.second / 60
+    )
+
+    dates = sorted(df["date"].unique())
+    cmap = plt.colormaps.get_cmap("tab20")
+    colors = [cmap(i / max(len(dates), 1)) for i in range(len(dates))]
+
+    fig, ax = plt.subplots(figsize=(14, 7))
+
+    # Shaded glucose-range bands
+    ax.axhspan(
+        TIGHT_LOW,
+        TIGHT_HIGH,
+        alpha=0.12,
+        color="limegreen",
+        label=f"Tight Target ({TIGHT_LOW}–{TIGHT_HIGH})",
+    )
+    ax.axhspan(
+        TIGHT_HIGH,
+        HIGH,
+        alpha=0.10,
+        color="darkgreen",
+        label=f"Above Tight ({TIGHT_HIGH}–{HIGH})",
+    )
+    ax.axhspan(HIGH, 600, alpha=0.08, color="orange", label=f"Above Range (>{HIGH})")
+    ax.axhspan(20, LOW, alpha=0.08, color="red", label=f"Below Range (<{LOW})")
+
+    # Threshold reference lines
+    ax.axhline(LOW, linestyle=":", linewidth=1, color="darkred", alpha=0.5)
+    ax.axhline(HIGH, linestyle=":", linewidth=1, color="darkred", alpha=0.5)
+    ax.axhline(VERY_LOW, linestyle=":", linewidth=1, color="maroon", alpha=0.4)
+    ax.axhline(VERY_HIGH, linestyle=":", linewidth=1, color="darkorange", alpha=0.4)
+    ax.axhline(TIGHT_HIGH, linestyle=":", linewidth=1, color="darkgreen", alpha=0.4)
+
+    for date, color in zip(dates, colors):
+        day_df = df[df["date"] == date].sort_values("minutes")
+        ax.plot(
+            day_df["minutes"],
+            day_df["Sensor Reading(mg/dL)"],
+            linewidth=1.2,
+            alpha=0.8,
+            color=color,
+            label=str(date),
+        )
+
+    xticks = np.arange(0, 1441, 120)
+    ax.set_xticks(xticks)
+    ax.set_xticklabels([f"{int(t // 60):02d}:00" for t in xticks])
+    ax.set_xlim(0, 1440)
+    ax.set_ylim(20, max(400, df["Sensor Reading(mg/dL)"].max() + 20))
+
+    ax.set_xlabel("Time of Day", fontsize=12)
+    ax.set_ylabel("Glucose (mg/dL)", fontsize=12)
+    ax.set_title(
+        "Daily Glucose Overlay – each day as a separate line", fontsize=13, pad=10
+    )
+    ax.grid(True, alpha=0.25)
+
+    # Night shading
+    ax.axvspan(22 * 60, 24 * 60, alpha=0.05, color="gray")
+    ax.axvspan(0, 6 * 60, alpha=0.05, color="gray")
+
+    # Build legend: day lines first, then range bands
+    day_handles = [
+        Line2D([0], [0], color=color, linewidth=1.5, label=str(date))
+        for date, color in zip(dates, colors)
+    ]
+    band_handles, band_labels = ax.get_legend_handles_labels()
+    # band_handles come from axhspan/axhline calls; keep only the named ones
+    named = [
+        (h, lbl) for h, lbl in zip(band_handles, band_labels) if not lbl.startswith("_")
+    ]
+    band_h = [h for h, _ in named]
+    band_l = [lbl for _, lbl in named]
+
+    ax.legend(
+        day_handles + band_h,
+        [str(d) for d in dates] + band_l,
+        loc="upper right",
+        fontsize=8,
+        ncol=max(1, (len(dates) + 4) // 5),
+        framealpha=0.9,
+        title="Day / Range",
+        title_fontsize=9,
+    )
+
+    # Header
+    date_range_str = format_date_range(df)
+    header_text = (
+        f"Patient: {report_header['patient_name']} | ID: {report_header['patient_id']}"
+    )
+    if report_header["doctor"]:
+        header_text += f" | Dr: {report_header['doctor']}"
+    header_text += f" | Report Date: {report_header['report_date']}"
+
+    plt.figtext(
+        0.5,
+        0.97,
+        header_text,
+        ha="center",
+        fontsize=10,
+        fontweight="bold",
+        bbox=dict(boxstyle="round,pad=0.3", facecolor="lightgray", alpha=0.3),
+    )
+    plt.figtext(
+        0.5,
+        0.01,
+        f"Source: {report_header['data_source']} | Data range: {date_range_str}",
+        ha="center",
+        fontsize=8,
+        style="italic",
+        color="gray",
+    )
+
+    plt.tight_layout(rect=[0, 0.03, 1, 0.95])
+
+    metadata = {
+        "Description": "Daily Glucose Overlay generated by AGP tool",
+        "Source": "https://github.com/daedalus/agp",
+        "Copyright": "Copyright 2026 Darío Clavijo",
+        "License": "MIT License",
+    }
+
+    _save_path = (
+        output_path
+        if output_path is not None
+        else getattr(args, "daily_plot_output", None)
+    )
+    if _save_path:
+        plt.savefig(_save_path, dpi=300, bbox_inches="tight", metadata=metadata)
+        if getattr(args, "verbose", False):
+            print(f"Daily plot saved to: {_save_path}")
     if show:
         plt.show()
     if close:

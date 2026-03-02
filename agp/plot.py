@@ -178,6 +178,247 @@ def _draw_daily_axes(ax, df, cfg, dark=False):
     )
 
 
+def _build_stats_text(metrics, cfg) -> str:
+    """Build the monospaced stats string rendered in ax_stats."""
+    LOW = cfg["LOW"]
+    HIGH = cfg["HIGH"]
+    VERY_LOW = cfg["VERY_LOW"]
+    VERY_HIGH = cfg["VERY_HIGH"]
+    TIGHT_LOW = cfg["TIGHT_LOW"]
+    TIGHT_HIGH = cfg["TIGHT_HIGH"]
+
+    def fmt(v, decimals=1):
+        return f"{v:.{decimals}f}" if not np.isnan(v) else "N/A"
+
+    tir = metrics["tir"]
+    titr = metrics["titr"]
+    tatr = metrics["tatr"]
+    tar = metrics["tar"]
+    tar_level1 = metrics["tar_level1"]
+    tar_level2 = metrics["tar_level2"]
+    tbr = metrics["tbr"]
+    tbr_level1 = metrics["tbr_level1"]
+    tbr_level2 = metrics["tbr_level2"]
+    mean_glucose = metrics["mean_glucose"]
+    median_glucose = metrics["median_glucose"]
+    std_glucose = metrics["std_glucose"]
+    mode_str = metrics["mode_str"]
+    skew_glucose = metrics["skew_glucose"]
+    skew_interpretation = metrics["skew_interpretation"]
+    gmi = metrics["gmi"]
+    cv_percent = metrics["cv_percent"]
+    day_cv = metrics["day_cv"]
+    night_cv = metrics["night_cv"]
+    j_index = metrics["j_index"]
+    mage = metrics["mage"]
+    modd = metrics["modd"]
+    conga = metrics["conga"]
+    lbgi = metrics["lbgi"]
+    hbgi = metrics["hbgi"]
+    gri = metrics["gri"]
+    gri_txt = metrics["gri_txt"]
+    adrr = metrics["adrr"]
+    time_weighted_avg = metrics["time_weighted_avg"]
+    exposure_severity_to_hyperglycemia_pct = metrics["exposure_severity_to_hyperglycemia_pct"]
+    exposure_severity_to_hypoglycemia_pct = metrics["exposure_severity_to_hypoglycemia_pct"]
+    exposure_severity_to_severe_hypoglycemia_pct = metrics["exposure_severity_to_severe_hypoglycemia_pct"]
+    days_of_data = metrics["days_of_data"]
+    readings_per_day = metrics["readings_per_day"]
+    wear_percentage = metrics["wear_percentage"]
+    severe_hypo_per_week = metrics["severe_hypo_per_week"]
+    p5 = metrics["p5"]
+    p25 = metrics["p25"]
+    p50 = metrics["p50"]
+    p75 = metrics["p75"]
+    p95 = metrics["p95"]
+    iqr = metrics["iqr"]
+    mag = metrics["mag"]
+    gvp = metrics["gvp"]
+    conga2 = metrics["conga2"]
+    conga4 = metrics["conga4"]
+    conga24 = metrics["conga24"]
+    lability_index = metrics["lability_index"]
+    cv_rate = metrics["cv_rate"]
+    m_value = metrics["m_value"]
+    ea1c = metrics["ea1c"]
+    grade = metrics["grade"]
+    grade_hypo_pct = metrics["grade_hypo_pct"]
+    grade_eu_pct = metrics["grade_eu_pct"]
+    grade_hyper_pct = metrics["grade_hyper_pct"]
+    hypo_index = metrics["hypo_index"]
+    hyper_index = metrics["hyper_index"]
+    tir_by_hour = metrics.get("tir_by_hour", [np.nan] * 24)
+
+    return (
+        f"TIME IN RANGE\n"
+        f"TIR ({LOW}-{HIGH}): {tir:.1f}%\n"
+        f"TITR ({TIGHT_LOW}-{TIGHT_HIGH}): {titr:.1f}%  ← Tight Target\n"
+        f"TATR ({TIGHT_HIGH}-{HIGH}): {tatr:.1f}%\n"
+        f"TAR >{HIGH}: {tar:.1f}% ({HIGH + 1}-{VERY_HIGH}: {tar_level1:.1f}%, >{VERY_HIGH}: {tar_level2:.1f}%)\n"
+        f"TBR <{LOW}: {tbr:.1f}% ({VERY_LOW}-{LOW - 1}: {tbr_level1:.1f}%, <{VERY_LOW}: {tbr_level2:.1f}%)\n\n"
+        f"GLUCOSE STATS\n"
+        f"Mean: {mean_glucose:.1f} mg/dL, median: {median_glucose:.1f} mg/dL\n"
+        f"Std: {std_glucose:.1f} mg/dL, mode: {mode_str} mg/dL\n"
+        f"skew: {skew_glucose:.1f} ({skew_interpretation})\n"
+        f"GMI: {gmi:.2f}%\n"
+        f"CV: {cv_percent:.1f}% {'(Stable)' if cv_percent < 36 else '(Unstable)'}\n"
+        f"CV: Day: {fmt(day_cv)}%, Night: {fmt(night_cv)}%\n"
+        f"J-Index: {j_index:.1f}\n\n"
+        f"VARIABILITY\n"
+        f"MAGE: {fmt(mage)}\n"
+        f"MODD: {fmt(modd)}\n"
+        f"CONGA(1h): {fmt(conga)}\n\n"
+        f"RISK\n"
+        f"LBGI: {lbgi:.2f}\n"
+        f"HBGI: {hbgi:.2f}\n"
+        f"GRI: {gri:.1f} ({gri_txt})\n"
+        f"ADRR: {fmt(adrr)}\n\n"
+        f"AUC\n"
+        f"Time-weighted avg: {fmt(time_weighted_avg)} mg/dL\n"
+        f"Hyperglycemia exposure severity: {exposure_severity_to_hyperglycemia_pct:.1f}%\n"
+        f"Hypoglycemia exposure severity: {exposure_severity_to_hypoglycemia_pct:.1f}%\n"
+        f"Severe hypoglycemia exposure severity: {exposure_severity_to_severe_hypoglycemia_pct:.1f}%\n\n"
+        f"DATA QUALITY\n"
+        f"Days: {days_of_data:.1f}\n"
+        f"Readings/day: {readings_per_day:.0f}\n"
+        f"Wear time: {wear_percentage:.1f}%\n"
+        f"Severe hypo/week: {fmt(severe_hypo_per_week, 2)}\n\n"
+        f"PERCENTILES\n"
+        f"p5: {p5:.1f}  p25: {p25:.1f}  p50: {p50:.1f}\n"
+        f"p75: {p75:.1f}  p95: {p95:.1f}  IQR: {iqr:.1f}\n\n"
+        f"ADDITIONAL VARIABILITY\n"
+        f"MAG: {fmt(mag)}  GVP: {fmt(gvp)}%\n"
+        f"CONGA(2h): {fmt(conga2)}  CONGA(4h): {fmt(conga4)}  CONGA(24h): {fmt(conga24)}\n"
+        f"Lability Index: {fmt(lability_index)}  CVrate: {fmt(cv_rate)}%\n"
+        f"M-Value: {fmt(m_value)}\n\n"
+        f"COMPOSITE INDICES\n"
+        f"eA1c: {ea1c:.2f}%\n"
+        f"GRADE: {fmt(grade)}  (Hypo: {fmt(grade_hypo_pct)}%  Eu: {fmt(grade_eu_pct)}%  Hyper: {fmt(grade_hyper_pct)}%)\n"
+        f"Hypo Index: {fmt(hypo_index, 2)}  Hyper Index: {fmt(hyper_index, 2)}\n\n"
+        f"HOURLY TIR (00→23):\n"
+        + "|".join(
+            str(int(v)) if not np.isnan(v) else "--" for v in tir_by_hour
+        )
+    )
+
+
+def _make_figure_and_gridspec(heatmap: bool, daily_plot: bool):
+    """Create and return (fig, gs) for the given panel combination."""
+    if heatmap:
+        if daily_plot:
+            fig = plt.figure(figsize=(24, 21))
+            gs = GridSpec(
+                4,
+                12,
+                figure=fig,
+                height_ratios=[3, 1.5, 1.5, 2],
+                hspace=0.35,
+                wspace=0.3,
+            )
+        else:
+            fig = plt.figure(figsize=(24, 17))
+            gs = GridSpec(
+                3, 12, figure=fig, height_ratios=[3, 1.5, 1.5], hspace=0.35, wspace=0.3
+            )
+    else:
+        if daily_plot:
+            fig = plt.figure(figsize=(24, 16))
+            gs = GridSpec(
+                3, 12, figure=fig, height_ratios=[3, 1.5, 2], hspace=0.35, wspace=0.3
+            )
+        else:
+            fig = plt.figure(figsize=(24, 12))
+            gs = GridSpec(
+                2, 12, figure=fig, height_ratios=[3, 1.5], hspace=0.35, wspace=0.3
+            )
+    return fig, gs
+
+
+def _draw_glucose_bands(ax, cfg):
+    """Draw background range bands and threshold lines onto ax."""
+    TIGHT_LOW = cfg["TIGHT_LOW"]
+    TIGHT_HIGH = cfg["TIGHT_HIGH"]
+    HIGH = cfg["HIGH"]
+    LOW = cfg["LOW"]
+
+    ax.axhspan(TIGHT_LOW, TIGHT_HIGH, alpha=0.1, color="limegreen")
+    ax.axhspan(TIGHT_HIGH, HIGH, alpha=0.07, color="green")
+    ax.axhspan(HIGH, 600, alpha=0.07, color="orange")
+    ax.axhspan(20, LOW, alpha=0.07, color="red")
+
+    ax.axhline(LOW, linestyle=":", linewidth=1, color="darkred", alpha=0.4)
+    ax.axhline(HIGH, linestyle=":", linewidth=1, color="darkred", alpha=0.4)
+    ax.axhline(TIGHT_HIGH, linestyle=":", linewidth=1, color="darkgreen", alpha=0.4)
+
+
+def _add_figure_texts(report_header: dict, date_range_str: str, fg_color: str):
+    """Add header, subtitle, and copyright figtext annotations."""
+    header_text = (
+        f"Patient: {report_header['patient_name']} | ID: {report_header['patient_id']}"
+    )
+    if report_header["doctor"]:
+        header_text += f" | Dr: {report_header['doctor']}"
+    header_text += f" | Report Date: {report_header['report_date']}"
+
+    plt.figtext(
+        0.5,
+        0.96,
+        header_text,
+        ha="center",
+        fontsize=10,
+        fontweight="bold",
+        color=fg_color,
+        bbox=dict(boxstyle="round,pad=0.3", facecolor="lightgray", alpha=0.3),
+    )
+
+    if report_header["notes"]:
+        plt.figtext(
+            0.5,
+            0.94,
+            f"Notes: {report_header['notes']} | Source: {report_header['data_source']} | Data range: {date_range_str}",
+            ha="center",
+            fontsize=8,
+            style="italic",
+            color=fg_color,
+        )
+    else:
+        plt.figtext(
+            0.5,
+            0.94,
+            f"Source: {report_header['data_source']} | Data range: {date_range_str}",
+            ha="center",
+            fontsize=8,
+            style="italic",
+            color=fg_color,
+        )
+
+    metadata = {
+        "Source": "https://github.com/daedalus/agp",
+        "Copyright": "Copyright 2026 Darío Clavijo",
+        "License": "MIT License",
+    }
+    plt.figtext(
+        0.5,
+        0.02,
+        f"{metadata['Source']}\n{metadata['Copyright']}\n{metadata['License']}",
+        ha="center",
+        fontsize=9,
+        color=fg_color,
+        style="italic",
+        alpha=0.7,
+    )
+
+
+SCATTER_RANGES = [
+    ("Tight Target",  8,  0.4, "none",  None),
+    ("Above Tight",  10,  0.5, "none",  None),
+    ("High",         12,  0.6, "none",  None),
+    ("Very High",    12,  0.7, "none",  None),
+    ("Low",          15,  0.8, "black", 0.5),
+    ("Very Low",     20,  1.0, "black", 0.8),
+]
+
+
 def generate_agp_plot(
     df,
     result,
@@ -219,16 +460,7 @@ def generate_agp_plot(
     TIGHT_LOW = cfg["TIGHT_LOW"]
     TIGHT_HIGH = cfg["TIGHT_HIGH"]
 
-    # Unpack metrics
-    tir = metrics["tir"]
-    titr = metrics["titr"]
-    tatr = metrics["tatr"]
-    tar = metrics["tar"]
-    tar_level1 = metrics["tar_level1"]
-    tar_level2 = metrics["tar_level2"]
-    tbr = metrics["tbr"]
-    tbr_level1 = metrics["tbr_level1"]
-    tbr_level2 = metrics["tbr_level2"]
+    # Unpack metrics needed in this function
     very_low_pct = metrics["very_low_pct"]
     low_pct = metrics["low_pct"]
     tight_target_pct = metrics["tight_target_pct"]
@@ -236,62 +468,9 @@ def generate_agp_plot(
     high_pct = metrics["high_pct"]
     very_high_pct = metrics["very_high_pct"]
     mean_glucose = metrics["mean_glucose"]
-    median_glucose = metrics["median_glucose"]
-    std_glucose = metrics["std_glucose"]
-    mode_str = metrics["mode_str"]
-    skew_glucose = metrics["skew_glucose"]
-    skew_interpretation = metrics["skew_interpretation"]
-    gmi = metrics["gmi"]
-    cv_percent = metrics["cv_percent"]
-    day_cv = metrics["day_cv"]
-    night_cv = metrics["night_cv"]
-    j_index = metrics["j_index"]
-    mage = metrics["mage"]
-    modd = metrics["modd"]
-    conga = metrics["conga"]
-    lbgi = metrics["lbgi"]
-    hbgi = metrics["hbgi"]
-    gri = metrics["gri"]
-    gri_txt = metrics["gri_txt"]
-    adrr = metrics["adrr"]
-    time_weighted_avg = metrics["time_weighted_avg"]
-    exposure_severity_to_hyperglycemia_pct = metrics[
-        "exposure_severity_to_hyperglycemia_pct"
-    ]
-    exposure_severity_to_hypoglycemia_pct = metrics[
-        "exposure_severity_to_hypoglycemia_pct"
-    ]
-    exposure_severity_to_severe_hypoglycemia_pct = metrics[
-        "exposure_severity_to_severe_hypoglycemia_pct"
-    ]
     days_of_data = metrics["days_of_data"]
-    readings_per_day = metrics["readings_per_day"]
-    wear_percentage = metrics["wear_percentage"]
-    severe_hypo_per_week = metrics["severe_hypo_per_week"]
     trend_arrow = metrics["trend_arrow"]
     trend_color = metrics["trend_color"]
-    p5 = metrics["p5"]
-    p25 = metrics["p25"]
-    p50 = metrics["p50"]
-    p75 = metrics["p75"]
-    p95 = metrics["p95"]
-    iqr = metrics["iqr"]
-    grade = metrics["grade"]
-    grade_hypo_pct = metrics["grade_hypo_pct"]
-    grade_eu_pct = metrics["grade_eu_pct"]
-    grade_hyper_pct = metrics["grade_hyper_pct"]
-    mag = metrics["mag"]
-    conga2 = metrics["conga2"]
-    conga4 = metrics["conga4"]
-    conga24 = metrics["conga24"]
-    m_value = metrics["m_value"]
-    ea1c = metrics["ea1c"]
-    hypo_index = metrics["hypo_index"]
-    hyper_index = metrics["hyper_index"]
-    gvp = metrics["gvp"]
-    tir_by_hour = metrics.get("tir_by_hour", [np.nan] * 24)
-    lability_index = metrics["lability_index"]
-    cv_rate = metrics["cv_rate"]
 
     # Create color-coded data series for raw readings
     df = df.copy()
@@ -300,9 +479,6 @@ def generate_agp_plot(
         bins=[0, VERY_LOW, TIGHT_LOW, TIGHT_HIGH, HIGH, VERY_HIGH, 1000],
         labels=["Very Low", "Low", "Tight Target", "Above Tight", "High", "Very High"],
     )
-
-    def fmt(v, decimals=1):
-        return f"{v:.{decimals}f}" if not np.isnan(v) else "N/A"
 
     # --------------------------------------------------
     # Create figure with GridSpec for custom layout
@@ -318,33 +494,9 @@ def generate_agp_plot(
     _box_alpha = 0.85      if dark else 0.35
     _fig_fc    = "#1e1e2e" if dark else "white"
 
-    if getattr(args, "heatmap", False):
-        if daily_plot:
-            fig = plt.figure(figsize=(24, 21))
-            gs = GridSpec(
-                4,
-                12,
-                figure=fig,
-                height_ratios=[3, 1.5, 1.5, 2],
-                hspace=0.35,
-                wspace=0.3,
-            )
-        else:
-            fig = plt.figure(figsize=(24, 17))
-            gs = GridSpec(
-                3, 12, figure=fig, height_ratios=[3, 1.5, 1.5], hspace=0.35, wspace=0.3
-            )
-    else:
-        if daily_plot:
-            fig = plt.figure(figsize=(24, 16))
-            gs = GridSpec(
-                3, 12, figure=fig, height_ratios=[3, 1.5, 2], hspace=0.35, wspace=0.3
-            )
-        else:
-            fig = plt.figure(figsize=(24, 12))
-            gs = GridSpec(
-                2, 12, figure=fig, height_ratios=[3, 1.5], hspace=0.35, wspace=0.3
-            )
+    fig, gs = _make_figure_and_gridspec(
+        heatmap=getattr(args, "heatmap", False), daily_plot=daily_plot
+    )
 
     # --- TOP ROW ---
     ax_bar = fig.add_subplot(gs[0, :2])
@@ -433,22 +585,7 @@ def generate_agp_plot(
     # Main AGP plot
     x = result["minutes"]
 
-    ax1.axhspan(
-        TIGHT_LOW,
-        TIGHT_HIGH,
-        alpha=0.15,
-        color="limegreen",
-        label=f"Tight Target ({TIGHT_LOW}-{TIGHT_HIGH})",
-    )
-    ax1.axhspan(
-        TIGHT_HIGH,
-        HIGH,
-        alpha=0.20,
-        color="darkgreen",
-        label=f"Above Tight ({TIGHT_HIGH}-{HIGH})",
-    )
-    ax1.axhspan(HIGH, 600, alpha=0.1, color="orange", label=f"Above Range (>{HIGH})")
-    ax1.axhspan(20, LOW, alpha=0.1, color="red", label=f"Below Range (<{LOW})")
+    _draw_glucose_bands(ax1, cfg)
 
     ax1.axhline(
         mean_glucose,
@@ -469,10 +606,6 @@ def generate_agp_plot(
     ax1.plot(
         x, result["mean"], linestyle="--", linewidth=1.5, color="navy", label="Mean"
     )
-
-    ax1.axhline(LOW, linestyle=":", linewidth=1, color="darkred", alpha=0.5)
-    ax1.axhline(HIGH, linestyle=":", linewidth=1, color="darkred", alpha=0.5)
-    ax1.axhline(TIGHT_HIGH, linestyle=":", linewidth=1, color="darkgreen", alpha=0.5)
 
     ax1.axvspan(22 * 60, 24 * 60, alpha=0.05, color="gray")
     ax1.axvspan(0, 6 * 60, alpha=0.05, color="gray", label="Night Hours")
@@ -499,58 +632,7 @@ def generate_agp_plot(
     current_ylim = ax1.get_ylim()
     ax1.set_ylim(current_ylim[0], current_ylim[1] * 1.15)
 
-    textstr = (
-        f"TIME IN RANGE\n"
-        f"TIR ({LOW}-{HIGH}): {tir:.1f}%\n"
-        f"TITR ({TIGHT_LOW}-{TIGHT_HIGH}): {titr:.1f}%  ← Tight Target\n"
-        f"TATR ({TIGHT_HIGH}-{HIGH}): {tatr:.1f}%\n"
-        f"TAR >{HIGH}: {tar:.1f}% ({HIGH + 1}-{VERY_HIGH}: {tar_level1:.1f}%, >{VERY_HIGH}: {tar_level2:.1f}%)\n"
-        f"TBR <{LOW}: {tbr:.1f}% ({VERY_LOW}-{LOW - 1}: {tbr_level1:.1f}%, <{VERY_LOW}: {tbr_level2:.1f}%)\n\n"
-        f"GLUCOSE STATS\n"
-        f"Mean: {mean_glucose:.1f} mg/dL, median: {median_glucose:.1f} mg/dL\n"
-        f"Std: {std_glucose:.1f} mg/dL, mode: {mode_str} mg/dL\n"
-        f"skew: {skew_glucose:.1f} ({skew_interpretation})\n"
-        f"GMI: {gmi:.2f}%\n"
-        f"CV: {cv_percent:.1f}% {'(Stable)' if cv_percent < 36 else '(Unstable)'}\n"
-        f"CV: Day: {fmt(day_cv)}%, Night: {fmt(night_cv)}%\n"
-        f"J-Index: {j_index:.1f}\n\n"
-        f"VARIABILITY\n"
-        f"MAGE: {fmt(mage)}\n"
-        f"MODD: {fmt(modd)}\n"
-        f"CONGA(1h): {fmt(conga)}\n\n"
-        f"RISK\n"
-        f"LBGI: {lbgi:.2f}\n"
-        f"HBGI: {hbgi:.2f}\n"
-        f"GRI: {gri:.1f} ({gri_txt})\n"
-        f"ADRR: {fmt(adrr)}\n\n"
-        f"AUC\n"
-        f"Time-weighted avg: {fmt(time_weighted_avg)} mg/dL\n"
-        f"Hyperglycemia exposure severity: {exposure_severity_to_hyperglycemia_pct:.1f}%\n"
-        f"Hypoglycemia exposure severity: {exposure_severity_to_hypoglycemia_pct:.1f}%\n"
-        f"Severe hypoglycemia exposure severity: {exposure_severity_to_severe_hypoglycemia_pct:.1f}%\n\n"
-        f"DATA QUALITY\n"
-        f"Days: {days_of_data:.1f}\n"
-        f"Readings/day: {readings_per_day:.0f}\n"
-        f"Wear time: {wear_percentage:.1f}%\n"
-        f"Severe hypo/week: {fmt(severe_hypo_per_week, 2)}\n\n"
-        f"PERCENTILES\n"
-        f"p5: {p5:.1f}  p25: {p25:.1f}  p50: {p50:.1f}\n"
-        f"p75: {p75:.1f}  p95: {p95:.1f}  IQR: {iqr:.1f}\n\n"
-        f"ADDITIONAL VARIABILITY\n"
-        f"MAG: {fmt(mag)}  GVP: {fmt(gvp)}%\n"
-        f"CONGA(2h): {fmt(conga2)}  CONGA(4h): {fmt(conga4)}  CONGA(24h): {fmt(conga24)}\n"
-        f"Lability Index: {fmt(lability_index)}  CVrate: {fmt(cv_rate)}%\n"
-        f"M-Value: {fmt(m_value)}\n\n"
-        f"COMPOSITE INDICES\n"
-        f"eA1c: {ea1c:.2f}%\n"
-        f"GRADE: {fmt(grade)}  (Hypo: {fmt(grade_hypo_pct)}%  Eu: {fmt(grade_eu_pct)}%  Hyper: {fmt(grade_hyper_pct)}%)\n"
-        f"Hypo Index: {fmt(hypo_index, 2)}  Hyper Index: {fmt(hyper_index, 2)}\n\n"
-        f"HOURLY TIR (00\u219223):\n"
-        + "|".join(
-            str(int(v)) if not np.isnan(v) else "--" for v in tir_by_hour
-        )
-    )
-
+    textstr = _build_stats_text(metrics, cfg)
     ax_stats.axis("off")
     ax_stats.text(
         0.02,
@@ -614,88 +696,22 @@ def generate_agp_plot(
         "Very High": "darkorange",
     }
 
-    tight_target_data = df[df["glucose_range"] == "Tight Target"]
-    if not tight_target_data.empty:
+    for range_label, marker_size, alpha, edge_color, lw in SCATTER_RANGES:
+        data = df[df["glucose_range"] == range_label]
+        if data.empty:
+            continue
         ax3.scatter(
-            tight_target_data["Time"],
-            tight_target_data["Sensor Reading(mg/dL)"],
-            c=range_colors["Tight Target"],
-            s=8,
-            alpha=0.4,
-            label=f"Tight Target ({TIGHT_LOW}-{TIGHT_HIGH}): {len(tight_target_data)} pts",
-            edgecolors="none",
+            data["Time"],
+            data["Sensor Reading(mg/dL)"],
+            c=range_colors[range_label],
+            s=marker_size,
+            alpha=alpha,
+            label=f"{range_label}: {len(data)} pts",
+            edgecolors=edge_color,
+            linewidth=lw if lw is not None else 0,
         )
 
-    above_tight_data = df[df["glucose_range"] == "Above Tight"]
-    if not above_tight_data.empty:
-        ax3.scatter(
-            above_tight_data["Time"],
-            above_tight_data["Sensor Reading(mg/dL)"],
-            c=range_colors["Above Tight"],
-            s=10,
-            alpha=0.5,
-            label=f"Above Tight ({TIGHT_HIGH + 1}-{HIGH}): {len(above_tight_data)} pts",
-            edgecolors="none",
-        )
-
-    high_data = df[df["glucose_range"] == "High"]
-    if not high_data.empty:
-        ax3.scatter(
-            high_data["Time"],
-            high_data["Sensor Reading(mg/dL)"],
-            c=range_colors["High"],
-            s=12,
-            alpha=0.6,
-            label=f"High ({HIGH + 1}-{VERY_HIGH}): {len(high_data)} pts",
-            edgecolors="none",
-        )
-
-    very_high_data = df[df["glucose_range"] == "Very High"]
-    if not very_high_data.empty:
-        ax3.scatter(
-            very_high_data["Time"],
-            very_high_data["Sensor Reading(mg/dL)"],
-            c=range_colors["Very High"],
-            s=12,
-            alpha=0.7,
-            label=f"Very High (>{VERY_HIGH}): {len(very_high_data)} pts",
-            edgecolors="none",
-        )
-
-    low_data = df[df["glucose_range"] == "Low"]
-    if not low_data.empty:
-        ax3.scatter(
-            low_data["Time"],
-            low_data["Sensor Reading(mg/dL)"],
-            c=range_colors["Low"],
-            s=15,
-            alpha=0.8,
-            label=f"Low ({VERY_LOW}-{LOW - 1}): {len(low_data)} pts",
-            edgecolors="black",
-            linewidth=0.5,
-        )
-
-    very_low_data = df[df["glucose_range"] == "Very Low"]
-    if not very_low_data.empty:
-        ax3.scatter(
-            very_low_data["Time"],
-            very_low_data["Sensor Reading(mg/dL)"],
-            c=range_colors["Very Low"],
-            s=20,
-            alpha=1.0,
-            label=f"Very Low (<{VERY_LOW}): {len(very_low_data)} pts",
-            edgecolors="black",
-            linewidth=0.8,
-        )
-
-    ax3.axhspan(TIGHT_LOW, TIGHT_HIGH, alpha=0.1, color="limegreen")
-    ax3.axhspan(TIGHT_HIGH, HIGH, alpha=0.07, color="green")
-    ax3.axhspan(HIGH, 600, alpha=0.07, color="orange")
-    ax3.axhspan(20, LOW, alpha=0.07, color="red")
-
-    ax3.axhline(LOW, linestyle=":", linewidth=1, color="darkred", alpha=0.4)
-    ax3.axhline(HIGH, linestyle=":", linewidth=1, color="darkred", alpha=0.4)
-    ax3.axhline(TIGHT_HIGH, linestyle=":", linewidth=1, color="darkgreen", alpha=0.4)
+    _draw_glucose_bands(ax3, cfg)
 
     ax3.xaxis.set_major_formatter(plt.matplotlib.dates.DateFormatter("%Y-%m-%d"))
     ax3.xaxis.set_major_locator(
@@ -790,44 +806,7 @@ def generate_agp_plot(
 
     # Header
     date_range_str = format_date_range(df)
-    header_text = (
-        f"Patient: {report_header['patient_name']} | ID: {report_header['patient_id']}"
-    )
-    if report_header["doctor"]:
-        header_text += f" | Dr: {report_header['doctor']}"
-    header_text += f" | Report Date: {report_header['report_date']}"
-
-    plt.figtext(
-        0.5,
-        0.96,
-        header_text,
-        ha="center",
-        fontsize=10,
-        fontweight="bold",
-        color=_fg,
-        bbox=dict(boxstyle="round,pad=0.3", facecolor="lightgray", alpha=0.3),
-    )
-
-    if report_header["notes"]:
-        plt.figtext(
-            0.5,
-            0.94,
-            f"Notes: {report_header['notes']} | Source: {report_header['data_source']} | Data range: {date_range_str}",
-            ha="center",
-            fontsize=8,
-            style="italic",
-            color=_fg,
-        )
-    else:
-        plt.figtext(
-            0.5,
-            0.94,
-            f"Source: {report_header['data_source']} | Data range: {date_range_str}",
-            ha="center",
-            fontsize=8,
-            style="italic",
-            color=_fg,
-        )
+    _add_figure_texts(report_header, date_range_str, _fg)
 
     if getattr(args, "heatmap", False):
         if daily_plot:
@@ -879,17 +858,6 @@ def generate_agp_plot(
         "Copyright": "Copyright 2026 Darío Clavijo",
         "License": "MIT License",
     }
-
-    plt.figtext(
-        0.5,
-        0.02,
-        f"{metadata['Source']}\n{metadata['Copyright']}\n{metadata['License']}",
-        ha="center",
-        fontsize=9,
-        color=_fg,
-        style="italic",
-        alpha=0.7,
-    )
 
     _save_path = (
         output_path if output_path is not None else getattr(args, "output", None)

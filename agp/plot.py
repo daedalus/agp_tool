@@ -595,7 +595,7 @@ def generate_agp_plot(
         ha="center",
         bbox=dict(
             boxstyle="round,pad=0.3",
-            facecolor="white",
+            facecolor=_bg,
             alpha=0.7,
             edgecolor=trend_color,
             linewidth=1.5,
@@ -714,25 +714,6 @@ def generate_agp_plot(
     ax3.grid(True, alpha=0.2, color=_grid_col)
     ax3.legend(loc="upper right", ncol=3, fontsize=8, framealpha=0.9)
     ax3.set_ylim(20, 400)
-
-    ax3.text(
-        0.01,
-        0.97,
-        f"Overall Trend: {trend_arrow}",
-        transform=ax3.transAxes,
-        fontsize=11,
-        fontweight="bold",
-        color=trend_color,
-        va="top",
-        ha="left",
-        bbox=dict(
-            boxstyle="round,pad=0.3",
-            facecolor="white",
-            alpha=0.7,
-            edgecolor=trend_color,
-            linewidth=1.5,
-        ),
-    )
 
     # --- HEATMAP ROW: Circadian Glucose Heatmap ---
     if getattr(args, "heatmap", False):
@@ -895,7 +876,13 @@ def generate_agp_plot(
         output_path if output_path is not None else getattr(args, "output", None)
     )
     if _save_path:
-        plt.savefig(_save_path, dpi=300, bbox_inches="tight", metadata=metadata)
+        plt.savefig(
+            _save_path,
+            dpi=300,
+            bbox_inches="tight",
+            metadata=metadata,
+            facecolor=_fig_fc,
+        )
         if getattr(args, "verbose", False):
             print(f"Plot saved to: {_save_path}")
     if show:
@@ -992,7 +979,13 @@ def generate_daily_plot(
         else getattr(args, "daily_plot_output", None)
     )
     if _save_path:
-        plt.savefig(_save_path, dpi=300, bbox_inches="tight", metadata=metadata)
+        plt.savefig(
+            _save_path,
+            dpi=300,
+            bbox_inches="tight",
+            metadata=metadata,
+            facecolor=_fig_fc,
+        )
         if getattr(args, "verbose", False):
             print(f"Daily plot saved to: {_save_path}")
     if show:

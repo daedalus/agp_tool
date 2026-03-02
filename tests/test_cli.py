@@ -102,3 +102,15 @@ def test_daily_plot_set_when_passed():
     parser = build_parser()
     args = parser.parse_args(["dummy.xlsx", "--daily-plot"])
     assert args.daily_plot is True
+
+
+def test_dark_mode_defaults_false():
+    parser = build_parser()
+    args = parser.parse_args(["dummy.xlsx"])
+    assert args.dark_mode is False
+
+
+def test_dark_mode_set_when_passed():
+    parser = build_parser()
+    args = parser.parse_args(["dummy.xlsx", "--dark-mode"])
+    assert args.dark_mode is True

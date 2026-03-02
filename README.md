@@ -202,6 +202,7 @@ fig_daily = report.plot_daily()
 | `notes` | str | `""` | Additional notes for report header |
 | `heatmap` | bool | `False` | Enable circadian glucose heatmap in `plot_agp()` |
 | `heatmap_cmap` | str | `"RdYlGn_r"` | Colormap for the heatmap |
+| `dark_mode` | bool | `False` | Use dark background theme for all plots |
 
 #### `ReportGenerator` methods and properties
 
@@ -293,6 +294,7 @@ popping up GUI windows.
 | `daily_plot` | bool | `False` | Generate a daily overlay plot (each day as a separate colored line, saved as `<stem>_daily.<ext>`) |
 | `show` | bool | `False` | Call `plt.show()` (interactive use only) |
 | `close` | bool | `False` | Call `plt.close()` after building figure |
+| `dark_mode` | bool | `False` | Use dark background theme for all plots |
 
 ## Requirements
 
@@ -370,6 +372,7 @@ options:
                         Colormap for circadian heatmap (default: RdYlGn_r, requires --heatmap)
   --pdf                 Also produce a PDF file with the PNG embedded as an image and metadata copied from the PNG. The PDF page size matches the source PNG dimensions exactly (derived from the PNG pHYs DPI metadata, defaulting to 72 DPI), with no margins, so the image is never cropped.
   --daily-plot          Generate an additional daily overlay plot where each day is shown as a separate colored line
+  --dark-mode           Use a dark background theme for all generated plots
 ```
 
 ### Examples

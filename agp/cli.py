@@ -137,6 +137,11 @@ def build_parser():
         action="store_true",
         help="Output only the daily overlay plot (skip the main AGP graph); saved to --output",
     )
+    parser.add_argument(
+        "--dark-mode",
+        action="store_true",
+        help="Use a dark background theme for all generated plots",
+    )
 
     return parser
 

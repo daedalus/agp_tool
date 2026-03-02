@@ -68,6 +68,8 @@ class ReportGenerator:
             :meth:`plot_agp`. Default: ``False``.
         heatmap_cmap (str): Colormap name for the circadian heatmap.
             Default: ``"RdYlGn_r"``.
+        dark_mode (bool): Use a dark background theme for all generated plots.
+            Default: ``False``.
 
     Attributes:
         metrics (dict): Full computed metrics dictionary.  Individual metric
@@ -118,6 +120,7 @@ class ReportGenerator:
         notes="",
         heatmap=False,
         heatmap_cmap="RdYlGn_r",
+        dark_mode=False,
     ):
         # Build an argparse Namespace so the existing helpers (build_config,
         # create_report_header, generate_agp_plot) continue to work unchanged.
@@ -141,6 +144,7 @@ class ReportGenerator:
             notes=notes,
             heatmap=heatmap,
             heatmap_cmap=heatmap_cmap,
+            dark_mode=dark_mode,
         )
 
         # Apply JSON config file overrides (mirrors CLI behaviour).
@@ -305,6 +309,7 @@ def generate_report(
     daily_plot_only=False,
     show=False,
     close=False,
+    dark_mode=False,
 ):
     """Run the full AGP pipeline and return the matplotlib Figure.
 
@@ -354,6 +359,8 @@ def generate_report(
             Set to ``True`` only when running interactively.  Default: ``False``.
         close (bool): Call ``plt.close()`` after building the figure.
             Default: ``False``.
+        dark_mode (bool): Use a dark background theme for all generated plots.
+            Default: ``False``.
 
     Returns:
         matplotlib.figure.Figure | None: The completed AGP figure (or the daily
@@ -380,6 +387,7 @@ def generate_report(
         notes=notes,
         heatmap=heatmap,
         heatmap_cmap=heatmap_cmap,
+        dark_mode=dark_mode,
     )
 
     fig = None

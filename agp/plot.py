@@ -60,7 +60,7 @@ def build_agp_profile(df, cfg):
     return result
 
 
-def _draw_daily_axes(ax, df, cfg):
+def _draw_daily_axes(ax, df, cfg, dark=False):
     """Draw daily overlay content onto *ax*.
 
     Draws glucose-range bands, threshold lines, per-day colored lines,
@@ -71,7 +71,11 @@ def _draw_daily_axes(ax, df, cfg):
         df: Preprocessed glucose DataFrame with ``Time`` and
             ``Sensor Reading(mg/dL)`` columns.
         cfg: Configuration dict from :func:`build_config`.
+        dark: When ``True``, apply dark-mode colour palette. Default: ``False``.
     """
+    _fg        = "#cdd6f4" if dark else "black"
+    _grid_col  = "#45475a" if dark else "gray"
+
     VERY_LOW = cfg["VERY_LOW"]
     LOW = cfg["LOW"]
     HIGH = cfg["HIGH"]
@@ -136,7 +140,14 @@ def _draw_daily_axes(ax, df, cfg):
     ax.set_title(
         "Daily Glucose Overlay – each day as a separate line", fontsize=13, pad=10
     )
-    ax.grid(True, alpha=0.25)
+    ax.grid(True, alpha=0.25, color=_grid_col)
+
+    ax.xaxis.label.set_color(_fg)
+    ax.yaxis.label.set_color(_fg)
+    ax.title.set_color(_fg)
+    ax.tick_params(colors=_fg)
+    for spine in ax.spines.values():
+        spine.set_edgecolor(_grid_col)
 
     # Night shading
     ax.axvspan(22 * 60, 24 * 60, alpha=0.05, color="gray")
@@ -296,9 +307,20 @@ def generate_agp_plot(
     # --------------------------------------------------
     # Create figure with GridSpec for custom layout
     # --------------------------------------------------
+    dark = getattr(args, "dark_mode", False)
+
+    # Theme colours
+    _bg        = "#1e1e2e" if dark else "white"
+    _fg        = "#cdd6f4" if dark else "black"
+    _grid_col  = "#45475a" if dark else "gray"
+    _box_fc    = "#313244" if dark else "white"
+    _box_ec    = "#89b4fa" if dark else "gray"
+    _box_alpha = 0.85      if dark else 0.35
+    _fig_fc    = "#1e1e2e" if dark else "white"
+
     if getattr(args, "heatmap", False):
         if daily_plot:
-            fig = plt.figure(figsize=(22, 21))
+            fig = plt.figure(figsize=(24, 21))
             gs = GridSpec(
                 4,
                 12,
@@ -308,18 +330,18 @@ def generate_agp_plot(
                 wspace=0.3,
             )
         else:
-            fig = plt.figure(figsize=(22, 17))
+            fig = plt.figure(figsize=(24, 17))
             gs = GridSpec(
                 3, 12, figure=fig, height_ratios=[3, 1.5, 1.5], hspace=0.35, wspace=0.3
             )
     else:
         if daily_plot:
-            fig = plt.figure(figsize=(22, 16))
+            fig = plt.figure(figsize=(24, 16))
             gs = GridSpec(
                 3, 12, figure=fig, height_ratios=[3, 1.5, 2], hspace=0.35, wspace=0.3
             )
         else:
-            fig = plt.figure(figsize=(22, 12))
+            fig = plt.figure(figsize=(24, 12))
             gs = GridSpec(
                 2, 12, figure=fig, height_ratios=[3, 1.5], hspace=0.35, wspace=0.3
             )
@@ -457,7 +479,7 @@ def generate_agp_plot(
 
     ax1.set_xlabel("Time of Day", fontsize=12)
     ax1.set_ylabel("Glucose (mg/dL)", fontsize=12)
-    ax1.grid(True, alpha=0.3)
+    ax1.grid(True, alpha=0.3, color=_grid_col)
 
     ax2 = ax1.twinx()
     ax2.plot(
@@ -531,21 +553,22 @@ def generate_agp_plot(
 
     ax_stats.axis("off")
     ax_stats.text(
-        0.03,
-        0.98,
+        0.02,
+        0.99,
         textstr,
-        fontsize=8,
+        fontsize=7.5,
         verticalalignment="top",
         horizontalalignment="left",
         transform=ax_stats.transAxes,
         family="monospace",
+        color=_fg,
         bbox=dict(
             boxstyle="round",
-            facecolor="lightyellow",
-            alpha=0.85,
-            edgecolor="gray",
-            linewidth=1,
-            pad=0.6,
+            facecolor=_box_fc,
+            alpha=_box_alpha,
+            edgecolor=_box_ec,
+            linewidth=0.8,
+            pad=0.5,
         ),
     )
 
@@ -688,7 +711,7 @@ def generate_agp_plot(
     ax3.set_ylabel("Glucose (mg/dL)", fontsize=11)
     ax3.set_xlabel("Date", fontsize=11)
     ax3.set_title("Raw Glucose Data Series (Color-coded by Range)", fontsize=12, pad=10)
-    ax3.grid(True, alpha=0.2)
+    ax3.grid(True, alpha=0.2, color=_grid_col)
     ax3.legend(loc="upper right", ncol=3, fontsize=8, framealpha=0.9)
     ax3.set_ylim(20, 400)
 
@@ -763,7 +786,7 @@ def generate_agp_plot(
     if daily_plot:
         daily_row = 3 if getattr(args, "heatmap", False) else 2
         ax_daily = fig.add_subplot(gs[daily_row, :])
-        _draw_daily_axes(ax_daily, df, cfg)
+        _draw_daily_axes(ax_daily, df, cfg, dark=dark)
 
     # Header
     date_range_str = format_date_range(df)
@@ -781,6 +804,7 @@ def generate_agp_plot(
         ha="center",
         fontsize=10,
         fontweight="bold",
+        color=_fg,
         bbox=dict(boxstyle="round,pad=0.3", facecolor="lightgray", alpha=0.3),
     )
 
@@ -792,7 +816,7 @@ def generate_agp_plot(
             ha="center",
             fontsize=8,
             style="italic",
-            color="gray",
+            color=_fg,
         )
     else:
         plt.figtext(
@@ -802,7 +826,7 @@ def generate_agp_plot(
             ha="center",
             fontsize=8,
             style="italic",
-            color="gray",
+            color=_fg,
         )
 
     if getattr(args, "heatmap", False):
@@ -811,12 +835,14 @@ def generate_agp_plot(
                 "Ambulatory Glucose Profile with Time in Tight Range (TITR), Raw Data Series, Circadian Heatmap and Daily Overlay",
                 fontsize=14,
                 y=0.92,
+                color=_fg,
             )
         else:
             plt.suptitle(
                 "Ambulatory Glucose Profile with Time in Tight Range (TITR), Raw Data Series and Circadian Heatmap",
                 fontsize=14,
                 y=0.92,
+                color=_fg,
             )
     else:
         if daily_plot:
@@ -824,13 +850,27 @@ def generate_agp_plot(
                 "Ambulatory Glucose Profile with Time in Tight Range (TITR), Raw Data Series and Daily Overlay",
                 fontsize=14,
                 y=0.92,
+                color=_fg,
             )
         else:
             plt.suptitle(
                 "Ambulatory Glucose Profile with Time in Tight Range (TITR) and Raw Data Series",
                 fontsize=14,
                 y=0.92,
+                color=_fg,
             )
+
+    # Apply dark mode styling to all axes
+    fig.patch.set_facecolor(_fig_fc)
+    for _ax in fig.get_axes():
+        _ax.set_facecolor(_bg)
+        _ax.tick_params(colors=_fg)
+        _ax.xaxis.label.set_color(_fg)
+        _ax.yaxis.label.set_color(_fg)
+        _ax.title.set_color(_fg)
+        for spine in _ax.spines.values():
+            spine.set_edgecolor(_grid_col)
+
     plt.tight_layout()
 
     metadata = {
@@ -846,7 +886,7 @@ def generate_agp_plot(
         f"{metadata['Source']}\n{metadata['Copyright']}\n{metadata['License']}",
         ha="center",
         fontsize=9,
-        color="gray",
+        color=_fg,
         style="italic",
         alpha=0.7,
     )
@@ -897,9 +937,16 @@ def generate_daily_plot(
     Returns:
         matplotlib.figure.Figure: The completed daily overlay figure.
     """
+    dark = getattr(args, "dark_mode", False)
+    _fg_d   = "#cdd6f4" if dark else "black"
+    _fig_fc = "#1e1e2e" if dark else "white"
+
     fig, ax = plt.subplots(figsize=(14, 7))
 
-    _draw_daily_axes(ax, df, cfg)
+    _draw_daily_axes(ax, df, cfg, dark=dark)
+
+    fig.patch.set_facecolor(_fig_fc)
+    ax.set_facecolor(_fig_fc)
 
     # Header
     date_range_str = format_date_range(df)
@@ -917,6 +964,7 @@ def generate_daily_plot(
         ha="center",
         fontsize=10,
         fontweight="bold",
+        color=_fg_d,
         bbox=dict(boxstyle="round,pad=0.3", facecolor="lightgray", alpha=0.3),
     )
     plt.figtext(
@@ -926,7 +974,7 @@ def generate_daily_plot(
         ha="center",
         fontsize=8,
         style="italic",
-        color="gray",
+        color=_fg_d,
     )
 
     plt.tight_layout(rect=[0, 0.03, 1, 0.95])

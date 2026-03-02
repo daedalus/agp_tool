@@ -99,8 +99,113 @@ trigger a release:
 ## Library usage
 
 `agp` is designed to be used both as a CLI tool and as an importable Python
-library.  The public entry-point is `generate_report`, which accepts every
-option available in the CLI and returns a `matplotlib.figure.Figure`.
+library.  It exposes two complementary APIs:
+
+* **`ReportGenerator` class** – instantiable object that accepts an input
+  file at construction time, computes all metrics immediately, and exposes
+  them as instance attributes.  Graph generation and export are available
+  as methods so they can be invoked on demand.
+* **`generate_report` function** – a thin wrapper around `ReportGenerator`
+  that provides full backward compatibility.
+
+### Class-based API (recommended)
+
+```python
+import matplotlib
+matplotlib.use("Agg")  # use non-interactive backend when no display is available
+
+from agp import ReportGenerator
+
+# Instantiate with an input file (all config params are keyword-only)
+report = ReportGenerator("data.csv", patient_name="Jane Doe", patient_id="P-001")
+
+# ── Access metrics ─────────────────────────────────────────────────────────
+# Individual metric attributes (computed once at construction time)
+print(f"Time in Range: {report.tir:.1f}%")
+print(f"Mean glucose:  {report.mean_glucose:.1f} mg/dL")
+print(f"GMI:           {report.gmi:.2f}%")
+print(f"GRI:           {report.gri:.1f} ({report.gri_txt})")
+
+# Full metrics dict
+m = report.metrics          # property
+m = report.get_metrics()    # equivalent callable form
+
+# ── Generate graphs ────────────────────────────────────────────────────────
+fig_agp   = report.plot_agp(output="agp.png")       # main AGP figure
+fig_daily = report.plot_daily(output="daily.png")   # daily overlay figure
+
+# Figures are standard matplotlib Figure objects
+fig_agp.savefig("agp_hires.png", dpi=300, bbox_inches="tight")
+
+# Omit output path to use the default (set at construction time)
+fig = report.plot_agp()   # saves to "ambulatory_glucose_profile.png"
+
+# ── Print clinical summary ─────────────────────────────────────────────────
+report.print_summary()
+
+# ── Export metrics to file ─────────────────────────────────────────────────
+report.export("metrics.json")   # JSON
+report.export("metrics.csv")    # CSV
+report.export("metrics.xlsx")   # Excel
+
+# ── Custom thresholds and options ──────────────────────────────────────────
+report = ReportGenerator(
+    "data.xlsx",
+    output="my_report.png",
+    low_threshold=65,
+    high_threshold=200,
+    patient_name="Jane Doe",
+    patient_id="P-001",
+    doctor="Dr. Smith",
+    heatmap=True,
+    heatmap_cmap="coolwarm",
+)
+fig = report.plot_agp()
+fig_daily = report.plot_daily()
+```
+
+#### `ReportGenerator` parameters
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `input_file` | str | *(required)* | Path to glucose data file |
+| `output` | str | `"ambulatory_glucose_profile.png"` | Default output PNG path used by `plot_agp()` |
+| `very_low_threshold` | int | 54 | Very low glucose threshold (mg/dL) |
+| `low_threshold` | int | 70 | Low glucose threshold (mg/dL) |
+| `high_threshold` | int | 180 | High glucose threshold (mg/dL) |
+| `very_high_threshold` | int | 250 | Very high glucose threshold (mg/dL) |
+| `tight_low` | int | 70 | Tight range lower limit (mg/dL) |
+| `tight_high` | int | 140 | Tight range upper limit (mg/dL) |
+| `bin_minutes` | int | 5 | Circadian bin size in minutes |
+| `sensor_interval` | int | 5 | CGM sensor interval in minutes |
+| `min_samples` | int | 5 | Minimum samples per bin |
+| `verbose` | bool | `False` | Print detailed progress |
+| `config` | str\|None | `None` | JSON config file path |
+| `patient_name` | str | `"Unknown"` | Patient name for report header |
+| `patient_id` | str | `"N/A"` | Patient ID for report header |
+| `doctor` | str | `""` | Doctor name for report header |
+| `notes` | str | `""` | Additional notes for report header |
+| `heatmap` | bool | `False` | Enable circadian glucose heatmap in `plot_agp()` |
+| `heatmap_cmap` | str | `"RdYlGn_r"` | Colormap for the heatmap |
+
+#### `ReportGenerator` methods and properties
+
+| Member | Description |
+|--------|-------------|
+| `report.metrics` | Full computed metrics dict (property) |
+| `report.get_metrics()` | Same as above (callable form) |
+| `report.<metric_name>` | Any individual metric, e.g. `report.tir`, `report.mean_glucose` |
+| `report.plot_agp(output, show, close)` | Generate and return the main AGP figure |
+| `report.plot_daily(output, show, close)` | Generate and return the daily overlay figure |
+| `report.print_summary()` | Print the clinical summary to stdout |
+| `report.export(path)` | Export metrics to `.json`, `.csv`, or `.xlsx` |
+
+### Function-based API (backward compatible)
+
+`generate_report` is retained for backward compatibility as a thin wrapper
+around `ReportGenerator`.  The public entry-point is `generate_report`,
+which accepts every option available in the CLI and returns a
+`matplotlib.figure.Figure`.
 
 ```python
 import matplotlib

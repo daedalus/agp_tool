@@ -36,12 +36,27 @@ This application should work with data from any CGM, however it was only tested 
 - MAGE (Mean Amplitude of Glycemic Excursions)
 - MODD (Mean of Daily Differences)
 - CONGA (Continuous Overall Net Glycemic Action)
+- MAG (Mean Absolute Glucose rate of change)
+- Multi-lag CONGA (1h, 2h, 4h, 24h)
+- GVP (Glucose Variability Percentage)
+- Lability Index
+- CVrate (CV of rate of change)
 
 ### Risk indices
 
 - LBGI (Low Blood Glucose Index)
 - HBGI (High Blood Glucose Index)
 - ADRR (Average Daily Risk Range)
+- GRI (Glycemia Risk Indicator)
+- Hypo Index / Hyper Index (Rodbard exposure indices)
+- M-Value (Schlichtkrull)
+
+### Composite indices
+
+- GRADE score with hypo/eu/hyper % breakdown
+- eA1c (Nathan/DCCT formula, distinct from GMI)
+- Percentile profile scalars (p5, p25, p50, p75, p95, IQR)
+- Hourly TIR breakdown (00–23)
 
 ### AUC analysis
 
@@ -405,41 +420,81 @@ See all options
 
 ## Metrics Explained
 
-### Core Metrics
+### Core Statistics
 
-Metric    Description    Clinical Target
+| Metric | Description | Clinical Target |
+|--------|-------------|-----------------|
+| TIR | Time in Range (70–180 mg/dL) | ≥70% |
+| TITR | Time in Tight Range (70–140 mg/dL) | ≥50% |
+| TBR | Time Below Range (<70 mg/dL) | <4% |
+| TAR | Time Above Range (>180 mg/dL) | <25% |
+| CV | Coefficient of Variation | <36% |
+| GMI | Glucose Management Indicator (estimated HbA1c from CGM mean) | <7% |
+| eA1c | Estimated A1c — Nathan/DCCT formula: (mean + 46.7) / 28.7 | <7% |
+| J-Index | Combined mean + variability index: 0.001 × (mean + SD)² | <20 |
+| GRI | Glycemia Risk Indicator — weighted composite of hypo/hyper exposure | 0–100 (lower better) |
 
-- TIR    Time in Range (70-180 mg/dL)    ≥70%
-- TITR    Time in Tight Range (70-140 mg/dL)    ≥50%
-- TBR    Time Below Range (<70 mg/dL)    <4%
-- CV    Coefficient of Variation    <36%
-- GMI    Glucose Management Indicator    below 7%
-- J-Index    Combined mean + variability    n/a
+### Percentile Profile
+
+| Metric | Description |
+|--------|-------------|
+| p5, p25, p50, p75, p95 | 5th, 25th, 50th (median), 75th, 95th percentile of all glucose readings |
+| IQR | Interquartile range = p75 − p25; core spread of the AGP profile |
 
 ### Variability Metrics
 
-Metric    Description
+| Metric | Description |
+|--------|-------------|
+| MAGE | Mean Amplitude of Glycemic Excursions — average of oscillations exceeding 1 SD |
+| MODD | Mean of Daily Differences — day-to-day glucose reproducibility |
+| CONGA(1h/2h/4h/24h) | Continuous Overall Net Glycemic Action at 1-, 2-, 4-, and 24-hour lags |
+| MAG | Mean Absolute Glucose rate of change — mean \|ΔG/Δt\| in mg/dL/hr |
+| GVP | Glucose Variability Percentage — extra trace length vs. a flat baseline, expressed as % |
+| Lability Index | Sum of squared successive glucose differences divided by time; sensitive to rapid swings |
+| CVrate | Coefficient of variation of the glucose rate-of-change series |
+| ADRR | Average Daily Risk Range — daily maximum risk excursion (Kovatchev) |
 
-- MAGE    Mean amplitude of glycemic excursions
-- MODD    Day-to-day glucose variability
-- CONGA    Intra-day glycemic variability (1h lag)
+### Risk Indices
 
-## Risk Metrics
+| Metric | Description |
+|--------|-------------|
+| LBGI | Low Blood Glucose Index — weighted hypoglycaemia risk score |
+| HBGI | High Blood Glucose Index — weighted hyperglycaemia risk score |
+| Hypo Index | Rodbard hypoglycaemia exposure index: mean ((LOW − g) / LOW)² × 100 for g < LOW |
+| Hyper Index | Rodbard hyperglycaemia exposure index: mean ((g − HIGH) / HIGH)² × 100 for g > HIGH |
+| M-Value | Schlichtkrull M-value — mean \|10 × log₁₀(g / 120)\|³; penalises deviations from 120 mg/dL |
 
-Metric    Description
+### GRADE
 
-- LBGI    Low Blood Glucose Index
-- HBGI    High Blood Glucose Index
-- GRI    Glycemia risk index
-- ADRR    Average Daily Risk Range
+| Metric | Description |
+|--------|-------------|
+| GRADE | Glycaemic Risk Assessment in Diabetes Equation — 0–50 composite quality score |
+| GRADE Hypo % | % contribution from readings below 70 mg/dL |
+| GRADE Euglycaemia % | % contribution from readings 70–140 mg/dL |
+| GRADE Hyper % | % contribution from readings above 140 mg/dL |
+
+### AUC Metrics
+
+| Metric | Description |
+|--------|-------------|
+| Time-weighted avg | AUC_total / duration — equivalent to mean glucose weighted by time |
+| Hyperglycaemia exposure | AUC above HIGH as % of total AUC |
+| Hypoglycaemia exposure | AUC below LOW as % of total AUC |
+| Severe hypo exposure | AUC below VERY_LOW as % of total AUC |
+
+### Hourly TIR
+
+| Metric | Description |
+|--------|-------------|
+| TIR by hour | Percentage of readings within LOW–HIGH for each clock hour (00–23) |
 
 ### Data Quality
 
-Metric    Description    Warning Threshold
-
-- Readings/day    Average daily readings    <24 readings/day
-- Wear time    % of possible readings    <70%
-- Severe hypo/week    Events <40 mg/dL per week    n/a
+| Metric | Description | Warning Threshold |
+|--------|-------------|-------------------|
+| Readings/day | Average daily CGM readings | <24/day |
+| Wear time | % of possible readings captured | <70% |
+| Severe hypo/week | Events <40 mg/dL per week | Any |
 
 ## Configuration
 
@@ -560,6 +615,62 @@ Continuous Glucose Monitoring (CGM) Metrics – Verified References
     *The average daily risk range: a new measure of glycemic variability.*  
     **Diabetes Care.** 2006;29(11):2272–2277.  
     DOI: 10.2337/dc06-1085
+
+
+### GRADE (Glycaemic Risk Assessment in Diabetes Equation)
+
+13. Hill NR, Hindmarsh PC, Stevens RJ, Stratton IM, Levy JC, Matthews DR.  
+    *A method for assessing quality of control from glucose profiles.*  
+    **Diabetic Medicine.** 2007;24(7):753–758.  
+    DOI: 10.1111/j.1464-5491.2007.02119.x
+
+
+### MAG (Mean Absolute Glucose)
+
+14. Hermanides J, Vriesendorp TM, Bosman RJ, Zandstra DF, Hoekstra JB, Devries JH.  
+    *Glucose variability is associated with intensive care unit mortality.*  
+    **Critical Care Medicine.** 2010;38(3):838–842.  
+    DOI: 10.1097/CCM.0b013e3181cc4be9
+
+
+### GVP (Glucose Variability Percentage)
+
+15. Peyser TA, Balo AK, Buckingham BA, Hirsch IB, Garcia A.  
+    *Glycemic variability percentage: a novel method for assessing glycemic variability from continuous glucose monitor data.*  
+    **Diabetes Technology & Therapeutics.** 2018;20(1):6–16.  
+    DOI: 10.1089/dia.2017.0187
+
+
+### M-Value
+
+16. Schlichtkrull J, Munck O, Jersild M.  
+    *The M-value, an index of blood-sugar control in diabetics.*  
+    **Acta Medica Scandinavica.** 1965;177(1):95–102.  
+    DOI: 10.1111/j.0954-6820.1965.tb01810.x
+
+
+### Lability Index
+
+17. Ryan EA, Shandro T, Green K, et al.  
+    *Assessment of the severity of hypoglycemia and glycemic lability in type 1 diabetic subjects undergoing islet transplantation.*  
+    **Diabetes.** 2004;53(4):955–962.  
+    DOI: 10.2337/diabetes.53.4.955
+
+
+### Hypoglycaemic / Hyperglycaemic Index (Rodbard)
+
+18. Rodbard D.  
+    *Characterizing accuracy of a continuous glucose monitoring system during hypoglycemia.*  
+    **Diabetes Technology & Therapeutics.** 2014;16(10):652–657.  
+    DOI: 10.1089/dia.2014.0030
+
+
+### eA1c (Nathan formula)
+
+19. Nathan DM, Kuenen J, Borg R, Zheng H, Schoenfeld D, Heine RJ; A1c-Derived Average Glucose (ADAG) Study Group.  
+    *Translating the A1C assay into estimated average glucose values.*  
+    **Diabetes Care.** 2008;31(8):1473–1478.  
+    DOI: 10.2337/dc08-0545
 
 
 ## Contributing

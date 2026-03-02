@@ -259,6 +259,28 @@ def generate_agp_plot(
     severe_hypo_per_week = metrics["severe_hypo_per_week"]
     trend_arrow = metrics["trend_arrow"]
     trend_color = metrics["trend_color"]
+    p5 = metrics["p5"]
+    p25 = metrics["p25"]
+    p50 = metrics["p50"]
+    p75 = metrics["p75"]
+    p95 = metrics["p95"]
+    iqr = metrics["iqr"]
+    grade = metrics["grade"]
+    grade_hypo_pct = metrics["grade_hypo_pct"]
+    grade_eu_pct = metrics["grade_eu_pct"]
+    grade_hyper_pct = metrics["grade_hyper_pct"]
+    mag = metrics["mag"]
+    conga2 = metrics["conga2"]
+    conga4 = metrics["conga4"]
+    conga24 = metrics["conga24"]
+    m_value = metrics["m_value"]
+    ea1c = metrics["ea1c"]
+    hypo_index = metrics["hypo_index"]
+    hyper_index = metrics["hyper_index"]
+    gvp = metrics["gvp"]
+    tir_by_hour = metrics.get("tir_by_hour", [np.nan] * 24)
+    lability_index = metrics["lability_index"]
+    cv_rate = metrics["cv_rate"]
 
     # Create color-coded data series for raw readings
     df = df.copy()
@@ -481,13 +503,29 @@ def generate_agp_plot(
         f"AUC\n"
         f"Time-weighted avg: {fmt(time_weighted_avg)} mg/dL\n"
         f"Hyperglycemia exposure severity: {exposure_severity_to_hyperglycemia_pct:.1f}%\n"
-        f"Hypoglycemia exposure severiry: {exposure_severity_to_hypoglycemia_pct:.1f}%\n"
-        f"Severe hypoglycemia exposure severiry: {exposure_severity_to_severe_hypoglycemia_pct:.1f}%\n\n"
+        f"Hypoglycemia exposure severity: {exposure_severity_to_hypoglycemia_pct:.1f}%\n"
+        f"Severe hypoglycemia exposure severity: {exposure_severity_to_severe_hypoglycemia_pct:.1f}%\n\n"
         f"DATA QUALITY\n"
         f"Days: {days_of_data:.1f}\n"
         f"Readings/day: {readings_per_day:.0f}\n"
         f"Wear time: {wear_percentage:.1f}%\n"
-        f"Severe hypo/week: {fmt(severe_hypo_per_week, 2)}"
+        f"Severe hypo/week: {fmt(severe_hypo_per_week, 2)}\n\n"
+        f"PERCENTILES\n"
+        f"p5: {p5:.1f}  p25: {p25:.1f}  p50: {p50:.1f}\n"
+        f"p75: {p75:.1f}  p95: {p95:.1f}  IQR: {iqr:.1f}\n\n"
+        f"ADDITIONAL VARIABILITY\n"
+        f"MAG: {fmt(mag)}  GVP: {fmt(gvp)}%\n"
+        f"CONGA(2h): {fmt(conga2)}  CONGA(4h): {fmt(conga4)}  CONGA(24h): {fmt(conga24)}\n"
+        f"Lability Index: {fmt(lability_index)}  CVrate: {fmt(cv_rate)}%\n"
+        f"M-Value: {fmt(m_value)}\n\n"
+        f"COMPOSITE INDICES\n"
+        f"eA1c: {ea1c:.2f}%\n"
+        f"GRADE: {fmt(grade)}  (Hypo: {fmt(grade_hypo_pct)}%  Eu: {fmt(grade_eu_pct)}%  Hyper: {fmt(grade_hyper_pct)}%)\n"
+        f"Hypo Index: {fmt(hypo_index, 2)}  Hyper Index: {fmt(hyper_index, 2)}\n\n"
+        f"HOURLY TIR (00\u219223):\n"
+        + "|".join(
+            str(int(v)) if not np.isnan(v) else "--" for v in tir_by_hour
+        )
     )
 
     plt.gcf().text(

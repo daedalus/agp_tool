@@ -299,6 +299,7 @@ def generate_report(
     heatmap_cmap="RdYlGn_r",
     pdf=False,
     daily_plot=False,
+    daily_plot_only=False,
     show=False,
     close=False,
 ):
@@ -345,14 +346,19 @@ def generate_report(
             day is shown as a separate colored line.  The figure is saved next
             to *output* with ``_daily`` appended before the extension.
             Default: ``False``.
+        daily_plot_only (bool): When ``True``, skip the main AGP plot and
+            generate only the daily overlay plot.  Implies ``daily_plot=True``
+            for the purpose of generating the daily figure.  ``no_plot`` still
+            takes precedence when both are set.  Default: ``False``.
         show (bool): Call ``plt.show()`` after building the figure.
             Set to ``True`` only when running interactively.  Default: ``False``.
         close (bool): Call ``plt.close()`` after building the figure.
             Default: ``False``.
 
     Returns:
-        matplotlib.figure.Figure | None: The completed AGP figure, or ``None``
-        when *no_plot* is ``True``.
+        matplotlib.figure.Figure | None: The completed AGP figure (or the daily
+        overlay figure when *daily_plot_only* is ``True``), or ``None`` when
+        *no_plot* is ``True``.
     """
     report = ReportGenerator(
         input_file=input_file,
@@ -377,17 +383,31 @@ def generate_report(
     )
 
     fig = None
-    if not no_plot:
-        fig = report.plot_agp(show=show, close=close)
-        if pdf:
-            pdf_path = output.rsplit(".", 1)[0] + ".pdf"
-            png_to_pdf(output, pdf_path)
-            if verbose:
-                print(f"PDF saved to: {pdf_path}")
+    fig_daily = None
 
-    if daily_plot and not no_plot:
-        report.plot_daily(show=show, close=close)
-    elif verbose and no_plot:
+    if not no_plot:
+        if not daily_plot_only:
+            fig = report.plot_agp(show=show, close=close)
+            if pdf:
+                pdf_path = output.rsplit(".", 1)[0] + ".pdf"
+                png_to_pdf(output, pdf_path)
+                if verbose:
+                    print(f"PDF saved to: {pdf_path}")
+
+        if daily_plot or daily_plot_only:
+            fig_daily = report.plot_daily(show=show, close=close)
+            if pdf:
+                base_output = output
+                if "." in base_output:
+                    base, ext = base_output.rsplit(".", 1)
+                else:
+                    base, ext = base_output, "png"
+                daily_png = f"{base}_daily.{ext}"
+                daily_pdf_path = f"{base}_daily.pdf"
+                png_to_pdf(daily_png, daily_pdf_path)
+                if verbose:
+                    print(f"Daily PDF saved to: {daily_pdf_path}")
+    elif verbose:
         print("Plot generation skipped (no_plot=True)")
 
     report.print_summary()
@@ -395,4 +415,4 @@ def generate_report(
     if export:
         report.export(export)
 
-    return fig
+    return fig_daily if daily_plot_only else fig

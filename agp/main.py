@@ -28,6 +28,7 @@ def main():
         heatmap_cmap=args.heatmap_cmap,
         pdf=args.pdf,
         daily_plot=args.daily_plot,
+        daily_plot_only=args.daily_plot_only,
         show=True,
         close=True,
     )

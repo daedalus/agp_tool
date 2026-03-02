@@ -426,7 +426,7 @@ def generate_agp_plot(
             frameon=True,
             fancybox=True,
             shadow=True,
-            facecolor="white",
+            facecolor=_box_fc,
             edgecolor="gray",
         )
 
@@ -595,7 +595,7 @@ def generate_agp_plot(
         ha="center",
         bbox=dict(
             boxstyle="round,pad=0.3",
-            facecolor="white",
+            facecolor=_bg,
             alpha=0.7,
             edgecolor=trend_color,
             linewidth=1.5,
@@ -727,7 +727,7 @@ def generate_agp_plot(
         ha="left",
         bbox=dict(
             boxstyle="round,pad=0.3",
-            facecolor="white",
+            facecolor=_bg,
             alpha=0.7,
             edgecolor=trend_color,
             linewidth=1.5,
@@ -895,7 +895,7 @@ def generate_agp_plot(
         output_path if output_path is not None else getattr(args, "output", None)
     )
     if _save_path:
-        plt.savefig(_save_path, dpi=300, bbox_inches="tight", metadata=metadata)
+        plt.savefig(_save_path, dpi=300, bbox_inches="tight", metadata=metadata, facecolor=_fig_fc)
         if getattr(args, "verbose", False):
             print(f"Plot saved to: {_save_path}")
     if show:
@@ -992,7 +992,7 @@ def generate_daily_plot(
         else getattr(args, "daily_plot_output", None)
     )
     if _save_path:
-        plt.savefig(_save_path, dpi=300, bbox_inches="tight", metadata=metadata)
+        plt.savefig(_save_path, dpi=300, bbox_inches="tight", metadata=metadata, facecolor=_fig_fc)
         if getattr(args, "verbose", False):
             print(f"Daily plot saved to: {_save_path}")
     if show:

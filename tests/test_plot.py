@@ -155,3 +155,103 @@ def test_daily_plot_distinct_colors(df_with_roc, cfg, report_header):
     day_lines = [ln for ln in ax.get_lines() if len(ln.get_xdata()) > 10]
     colors = [mcolors.to_rgba(ln.get_color()) for ln in day_lines]
     assert len(colors) == len(set(colors)), "Day lines must have distinct colors"
+
+
+# --- dark mode tests ---
+
+_DARK_BG = "#1e1e2e"
+_DARK_FIG = "#1e1e2e"
+_DARK_BOX_FC = "#313244"
+
+
+def test_agp_plot_dark_mode_figure_facecolor(df_with_roc, cfg, report_header):
+    """In dark mode, the figure facecolor must be the dark background colour."""
+    result = build_agp_profile(df_with_roc, cfg)
+    metrics = compute_all_metrics(df_with_roc, cfg)
+    args = _make_plot_args(dark_mode=True)
+
+    import matplotlib.colors as mcolors
+
+    with (
+        patch("matplotlib.pyplot.savefig"),
+        patch("matplotlib.pyplot.show"),
+        patch("matplotlib.pyplot.close"),
+    ):
+        fig = generate_agp_plot(df_with_roc, result, metrics, cfg, args, report_header)
+
+    actual = mcolors.to_hex(fig.patch.get_facecolor())
+    assert actual == _DARK_FIG
+
+
+def test_agp_plot_dark_mode_axes_facecolor(df_with_roc, cfg, report_header):
+    """In dark mode, every axes background must be the dark background colour."""
+    result = build_agp_profile(df_with_roc, cfg)
+    metrics = compute_all_metrics(df_with_roc, cfg)
+    args = _make_plot_args(dark_mode=True)
+
+    import matplotlib.colors as mcolors
+
+    with (
+        patch("matplotlib.pyplot.savefig"),
+        patch("matplotlib.pyplot.show"),
+        patch("matplotlib.pyplot.close"),
+    ):
+        fig = generate_agp_plot(df_with_roc, result, metrics, cfg, args, report_header)
+
+    for ax in fig.get_axes():
+        actual = mcolors.to_hex(ax.get_facecolor())
+        assert actual == _DARK_BG, f"Axes facecolor {actual!r} != {_DARK_BG!r}"
+
+
+def test_agp_plot_savefig_receives_dark_facecolor(df_with_roc, cfg, report_header, tmp_path):
+    """savefig must be called with facecolor=_fig_fc so dark background is preserved on disk."""
+    import matplotlib.colors as mcolors
+    from unittest.mock import call
+
+    result = build_agp_profile(df_with_roc, cfg)
+    metrics = compute_all_metrics(df_with_roc, cfg)
+    out = str(tmp_path / "dark.png")
+    args = _make_plot_args(dark_mode=True, output=out)
+
+    with patch("matplotlib.pyplot.savefig") as mock_save:
+        generate_agp_plot(df_with_roc, result, metrics, cfg, args, report_header)
+
+    assert mock_save.called
+    _, kwargs = mock_save.call_args
+    actual = mcolors.to_hex(kwargs["facecolor"])
+    assert actual == _DARK_FIG
+
+
+def test_daily_plot_savefig_receives_dark_facecolor(df_with_roc, cfg, report_header, tmp_path):
+    """generate_daily_plot savefig must also carry facecolor=_fig_fc in dark mode."""
+    import matplotlib.colors as mcolors
+
+    out = str(tmp_path / "daily_dark.png")
+    args = _make_plot_args(dark_mode=True, daily_plot_output=out)
+
+    with patch("matplotlib.pyplot.savefig") as mock_save:
+        generate_daily_plot(df_with_roc, cfg, args, report_header)
+
+    assert mock_save.called
+    _, kwargs = mock_save.call_args
+    actual = mcolors.to_hex(kwargs["facecolor"])
+    assert actual == _DARK_FIG
+
+
+def test_agp_plot_light_mode_figure_facecolor(df_with_roc, cfg, report_header):
+    """In light mode, figure facecolor must remain white."""
+    result = build_agp_profile(df_with_roc, cfg)
+    metrics = compute_all_metrics(df_with_roc, cfg)
+    args = _make_plot_args(dark_mode=False)
+
+    import matplotlib.colors as mcolors
+
+    with (
+        patch("matplotlib.pyplot.savefig"),
+        patch("matplotlib.pyplot.show"),
+        patch("matplotlib.pyplot.close"),
+    ):
+        fig = generate_agp_plot(df_with_roc, result, metrics, cfg, args, report_header)
+
+    actual = mcolors.to_hex(fig.patch.get_facecolor())
+    assert actual == "#ffffff"

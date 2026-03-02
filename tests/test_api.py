@@ -54,8 +54,8 @@ def test_generate_report_heatmap(glucose_csv):
     """generate_report with heatmap=True returns a figure with extra axes."""
     fig = generate_report(glucose_csv, heatmap=True, show=False, close=False)
     assert isinstance(fig, matplotlib.figure.Figure)
-    # heatmap adds 2 extra axes (heatmap + colorbar) → 6 total
-    assert len(fig.get_axes()) == 6
+    # heatmap adds 2 extra axes (heatmap + colorbar) → 7 total
+    assert len(fig.get_axes()) == 7
 
 
 def test_generate_report_no_show_by_default(glucose_csv, monkeypatch):
@@ -224,9 +224,9 @@ def test_report_generator_heatmap_plot(glucose_csv):
     rg = ReportGenerator(glucose_csv, heatmap=True)
     fig = rg.plot_agp(output="", show=False, close=False)
     assert isinstance(fig, matplotlib.figure.Figure)
-    # Heatmap adds 2 extra axes (heatmap panel + colorbar) → 6 total
-    # (vs. 4 for non-heatmap: distribution bar, AGP main, ROC twin, raw series)
-    assert len(fig.get_axes()) == 6
+    # Heatmap adds 2 extra axes (heatmap panel + colorbar) → 7 total
+    # (vs. 5 for non-heatmap: distribution bar, AGP main, stats panel, ROC twin, raw series)
+    assert len(fig.get_axes()) == 7
 
 
 def test_report_generator_metrics_keys_complete(report):

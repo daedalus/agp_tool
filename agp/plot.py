@@ -298,7 +298,7 @@ def generate_agp_plot(
     # --------------------------------------------------
     if getattr(args, "heatmap", False):
         if daily_plot:
-            fig = plt.figure(figsize=(18, 21))
+            fig = plt.figure(figsize=(22, 21))
             gs = GridSpec(
                 4,
                 12,
@@ -308,25 +308,26 @@ def generate_agp_plot(
                 wspace=0.3,
             )
         else:
-            fig = plt.figure(figsize=(18, 17))
+            fig = plt.figure(figsize=(22, 17))
             gs = GridSpec(
                 3, 12, figure=fig, height_ratios=[3, 1.5, 1.5], hspace=0.35, wspace=0.3
             )
     else:
         if daily_plot:
-            fig = plt.figure(figsize=(18, 16))
+            fig = plt.figure(figsize=(22, 16))
             gs = GridSpec(
                 3, 12, figure=fig, height_ratios=[3, 1.5, 2], hspace=0.35, wspace=0.3
             )
         else:
-            fig = plt.figure(figsize=(18, 12))
+            fig = plt.figure(figsize=(22, 12))
             gs = GridSpec(
                 2, 12, figure=fig, height_ratios=[3, 1.5], hspace=0.35, wspace=0.3
             )
 
     # --- TOP ROW ---
     ax_bar = fig.add_subplot(gs[0, :2])
-    ax1 = fig.add_subplot(gs[0, 2:])
+    ax1 = fig.add_subplot(gs[0, 2:9])
+    ax_stats = fig.add_subplot(gs[0, 9:])
 
     # Stacked bar chart of glucose distribution
     percentages = [
@@ -528,22 +529,24 @@ def generate_agp_plot(
         )
     )
 
-    plt.gcf().text(
-        0.75,
-        0.92,
+    ax_stats.axis("off")
+    ax_stats.text(
+        0.03,
+        0.98,
         textstr,
-        fontsize=9,
-        bbox=dict(
-            boxstyle="round",
-            facecolor="white",
-            alpha=0.49,
-            edgecolor="gray",
-            linewidth=1,
-            pad=0.8,
-        ),
+        fontsize=8,
         verticalalignment="top",
         horizontalalignment="left",
-        transform=ax1.transAxes,
+        transform=ax_stats.transAxes,
+        family="monospace",
+        bbox=dict(
+            boxstyle="round",
+            facecolor="lightyellow",
+            alpha=0.85,
+            edgecolor="gray",
+            linewidth=1,
+            pad=0.6,
+        ),
     )
 
     lines1, labels1 = ax1.get_legend_handles_labels()

@@ -61,15 +61,15 @@ def _run_plot(df_with_roc, cfg, report_header, heatmap):
 
 
 def test_heatmap_subplot_absent_when_disabled(df_with_roc, cfg, report_header):
-    """Without --heatmap, the figure should have 4 axes (no heatmap row)."""
+    """Without --heatmap, the figure should have 5 axes (no heatmap row)."""
     fig = _run_plot(df_with_roc, cfg, report_header, heatmap=False)
-    assert len(fig.get_axes()) == 4
+    assert len(fig.get_axes()) == 5
 
 
 def test_heatmap_subplot_present_when_enabled(df_with_roc, cfg, report_header):
-    """With --heatmap, the figure should have 6 axes (heatmap + colorbar added)."""
+    """With --heatmap, the figure should have 7 axes (heatmap + colorbar added)."""
     fig = _run_plot(df_with_roc, cfg, report_header, heatmap=True)
-    assert len(fig.get_axes()) == 6
+    assert len(fig.get_axes()) == 7
 
 
 # --- format_date_range tests ---

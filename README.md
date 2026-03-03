@@ -462,7 +462,7 @@ See all options
 | CONGA(1h/2h/4h/24h) | Continuous Overall Net Glycemic Action at 1-, 2-, 4-, and 24-hour lags |
 | MAG | Mean Absolute Glucose rate of change — mean \|ΔG/Δt\| in mg/dL/hr |
 | GVP | Glucose Variability Percentage — extra trace length vs. a flat baseline, expressed as % |
-| Lability Index | Sum of squared successive glucose differences divided by time; sensitive to rapid swings |
+| Lability Index | Sum of squared successive glucose differences divided by time; sensitive to rapid swings in (mg/dL)^2/hr |
 | CVrate | Coefficient of variation of the glucose rate-of-change series |
 | ADRR | Average Daily Risk Range — daily maximum risk excursion (Kovatchev) |
 

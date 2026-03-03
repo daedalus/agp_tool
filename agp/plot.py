@@ -419,98 +419,51 @@ SCATTER_RANGES = [
 ]
 
 
-def generate_agp_plot(
-    df,
-    result,
-    metrics,
-    cfg,
-    args,
-    report_header,
-    *,
-    output_path=None,
-    show=False,
-    close=False,
-    daily_plot=False,
-):
-    """Render the full AGP figure and return it.
+def _resolve_theme(dark: bool) -> dict:
+    """Return colour tokens for dark or light theme."""
+    return {
+        "bg":        "#1e1e2e" if dark else "white",
+        "fg":        "#cdd6f4" if dark else "black",
+        "grid_col":  "#45475a" if dark else "gray",
+        "box_fc":    "#313244" if dark else "white",
+        "box_ec":    "#89b4fa" if dark else "gray",
+        "box_alpha": 0.85      if dark else 0.35,
+        "fig_fc":    "#1e1e2e" if dark else "white",
+    }
 
-    Args:
-        df: Preprocessed glucose DataFrame.
-        result: AGP profile DataFrame from :func:`build_agp_profile`.
-        metrics: Metrics dict from :func:`compute_all_metrics`.
-        cfg: Configuration dict from :func:`build_config`.
-        args: argparse Namespace (or None) supplying ``heatmap``,
-            ``heatmap_cmap``, ``output``, and ``verbose`` attributes.
-        report_header: Report header dict from :func:`create_report_header`.
-        output_path: If given, save the figure to this path (overrides
-            ``args.output``).  Pass ``None`` (and ensure ``args.output`` is
-            also ``None`` / falsy) to skip saving entirely.
-        show: If ``True`` call ``plt.show()`` after building the figure.
-        close: If ``True`` call ``plt.close()`` after building the figure.
-        daily_plot: If ``True`` add an extra daily overlay panel at the bottom
-            of the figure.  Default: ``False``.
 
-    Returns:
-        matplotlib.figure.Figure: The completed AGP figure.
-    """
-    VERY_LOW = cfg["VERY_LOW"]
-    LOW = cfg["LOW"]
-    HIGH = cfg["HIGH"]
-    VERY_HIGH = cfg["VERY_HIGH"]
+def _tag_glucose_ranges(df, cfg):
+    """Return a copy of *df* with a ``glucose_range`` categorical column."""
+    VERY_LOW  = cfg["VERY_LOW"]
     TIGHT_LOW = cfg["TIGHT_LOW"]
     TIGHT_HIGH = cfg["TIGHT_HIGH"]
-
-    # Unpack metrics needed in this function
-    very_low_pct = metrics["very_low_pct"]
-    low_pct = metrics["low_pct"]
-    tight_target_pct = metrics["tight_target_pct"]
-    above_tight_pct = metrics["above_tight_pct"]
-    high_pct = metrics["high_pct"]
-    very_high_pct = metrics["very_high_pct"]
-    mean_glucose = metrics["mean_glucose"]
-    days_of_data = metrics["days_of_data"]
-    trend_arrow = metrics["trend_arrow"]
-    trend_color = metrics["trend_color"]
-
-    # Create color-coded data series for raw readings
+    HIGH      = cfg["HIGH"]
+    VERY_HIGH = cfg["VERY_HIGH"]
     df = df.copy()
     df["glucose_range"] = pd.cut(
         df["Sensor Reading(mg/dL)"],
         bins=[0, VERY_LOW, TIGHT_LOW, TIGHT_HIGH, HIGH, VERY_HIGH, 1000],
         labels=["Very Low", "Low", "Tight Target", "Above Tight", "High", "Very High"],
     )
+    return df
 
-    # --------------------------------------------------
-    # Create figure with GridSpec for custom layout
-    # --------------------------------------------------
-    dark = getattr(args, "dark_mode", False)
 
-    # Theme colours
-    _bg        = "#1e1e2e" if dark else "white"
-    _fg        = "#cdd6f4" if dark else "black"
-    _grid_col  = "#45475a" if dark else "gray"
-    _box_fc    = "#313244" if dark else "white"
-    _box_ec    = "#89b4fa" if dark else "gray"
-    _box_alpha = 0.85      if dark else 0.35
-    _fig_fc    = "#1e1e2e" if dark else "white"
+def _draw_distribution_bar(ax_bar, metrics, cfg, theme: dict):
+    """Draw the stacked glucose-distribution bar chart onto *ax_bar*."""
+    VERY_LOW  = cfg["VERY_LOW"]
+    LOW       = cfg["LOW"]
+    HIGH      = cfg["HIGH"]
+    VERY_HIGH = cfg["VERY_HIGH"]
+    TIGHT_LOW  = cfg["TIGHT_LOW"]
+    TIGHT_HIGH = cfg["TIGHT_HIGH"]
 
-    fig, gs = _make_figure_and_gridspec(
-        heatmap=getattr(args, "heatmap", False), daily_plot=daily_plot
-    )
-
-    # --- TOP ROW ---
-    ax_bar = fig.add_subplot(gs[0, :2])
-    ax1 = fig.add_subplot(gs[0, 2:9])
-    ax_stats = fig.add_subplot(gs[0, 9:])
-
-    # Stacked bar chart of glucose distribution
     percentages = [
-        very_low_pct,
-        low_pct,
-        tight_target_pct,
-        above_tight_pct,
-        high_pct,
-        very_high_pct,
+        metrics["very_low_pct"],
+        metrics["low_pct"],
+        metrics["tight_target_pct"],
+        metrics["above_tight_pct"],
+        metrics["high_pct"],
+        metrics["very_high_pct"],
     ]
     colors = ["darkred", "red", "limegreen", "yellowgreen", "orange", "darkorange"]
     labels = [
@@ -578,11 +531,17 @@ def generate_agp_plot(
             frameon=True,
             fancybox=True,
             shadow=True,
-            facecolor=_box_fc,
+            facecolor=theme["box_fc"],
             edgecolor="gray",
         )
 
-    # Main AGP plot
+
+def _draw_agp_panel(ax1, ax_stats, result, metrics, cfg, theme: dict):
+    """Draw the main AGP panel and stats text box; return ``(ax1, ax2)``."""
+    mean_glucose = metrics["mean_glucose"]
+    trend_arrow  = metrics["trend_arrow"]
+    trend_color  = metrics["trend_color"]
+
     x = result["minutes"]
 
     _draw_glucose_bands(ax1, cfg)
@@ -612,7 +571,7 @@ def generate_agp_plot(
 
     ax1.set_xlabel("Time of Day", fontsize=12)
     ax1.set_ylabel("Glucose (mg/dL)", fontsize=12)
-    ax1.grid(True, alpha=0.3, color=_grid_col)
+    ax1.grid(True, alpha=0.3, color=theme["grid_col"])
 
     ax2 = ax1.twinx()
     ax2.plot(
@@ -643,12 +602,12 @@ def generate_agp_plot(
         horizontalalignment="left",
         transform=ax_stats.transAxes,
         family="monospace",
-        color=_fg,
+        color=theme["fg"],
         bbox=dict(
             boxstyle="round",
-            facecolor=_box_fc,
-            alpha=_box_alpha,
-            edgecolor=_box_ec,
+            facecolor=theme["box_fc"],
+            alpha=theme["box_alpha"],
+            edgecolor=theme["box_ec"],
             linewidth=0.8,
             pad=0.5,
         ),
@@ -677,15 +636,21 @@ def generate_agp_plot(
         ha="center",
         bbox=dict(
             boxstyle="round,pad=0.3",
-            facecolor=_bg,
+            facecolor=theme["bg"],
             alpha=0.7,
             edgecolor=trend_color,
             linewidth=1.5,
         ),
     )
 
-    # --- BOTTOM ROW: Raw Data Series Chart ---
-    ax3 = fig.add_subplot(gs[1, :])
+    return ax1, ax2
+
+
+def _draw_raw_scatter(ax3, df, metrics, cfg, theme: dict):
+    """Draw the color-coded raw glucose scatter plot onto *ax3*."""
+    days_of_data = metrics["days_of_data"]
+    trend_arrow  = metrics["trend_arrow"]
+    trend_color  = metrics["trend_color"]
 
     range_colors = {
         "Very Low": "darkred",
@@ -727,7 +692,7 @@ def generate_agp_plot(
     ax3.set_ylabel("Glucose (mg/dL)", fontsize=11)
     ax3.set_xlabel("Date", fontsize=11)
     ax3.set_title("Raw Glucose Data Series (Color-coded by Range)", fontsize=12, pad=10)
-    ax3.grid(True, alpha=0.2, color=_grid_col)
+    ax3.grid(True, alpha=0.2, color=theme["grid_col"])
     ax3.legend(loc="upper right", ncol=3, fontsize=8, framealpha=0.9)
     ax3.set_ylim(20, 400)
 
@@ -743,115 +708,99 @@ def generate_agp_plot(
         ha="left",
         bbox=dict(
             boxstyle="round,pad=0.3",
-            facecolor=_bg,
+            facecolor=theme["bg"],
             alpha=0.7,
             edgecolor=trend_color,
             linewidth=1.5,
         ),
     )
 
-    # --- HEATMAP ROW: Circadian Glucose Heatmap ---
-    if getattr(args, "heatmap", False):
-        ax_heat = fig.add_subplot(gs[2, :])
 
-        heat_df = df[["Time", "Sensor Reading(mg/dL)"]].copy()
-        heat_df["hour"] = heat_df["Time"].dt.hour
-        heat_df["date"] = heat_df["Time"].dt.date
-        heat_data = heat_df.pivot_table(
-            index="date", columns="hour", values="Sensor Reading(mg/dL)", aggfunc="mean"
-        )
-        heat_data = heat_data.reindex(columns=range(24))
+def _draw_heatmap(ax_heat, df, args):
+    """Draw the circadian glucose heatmap onto *ax_heat*."""
+    heat_df = df[["Time", "Sensor Reading(mg/dL)"]].copy()
+    heat_df["hour"] = heat_df["Time"].dt.hour
+    heat_df["date"] = heat_df["Time"].dt.date
+    heat_data = heat_df.pivot_table(
+        index="date", columns="hour", values="Sensor Reading(mg/dL)", aggfunc="mean"
+    )
+    heat_data = heat_data.reindex(columns=range(24))
 
-        heat_img = ax_heat.imshow(
-            heat_data.values,
-            aspect="auto",
-            cmap=args.heatmap_cmap,
-            vmin=40,
-            vmax=300,
-            interpolation="nearest",
-        )
+    heat_img = ax_heat.imshow(
+        heat_data.values,
+        aspect="auto",
+        cmap=args.heatmap_cmap,
+        vmin=40,
+        vmax=300,
+        interpolation="nearest",
+    )
 
-        cbar = plt.colorbar(heat_img, ax=ax_heat, pad=0.01)
-        cbar.set_label("Glucose (mg/dL)", fontsize=10)
+    cbar = plt.colorbar(heat_img, ax=ax_heat, pad=0.01)
+    cbar.set_label("Glucose (mg/dL)", fontsize=10)
 
-        ax_heat.set_xticks(range(24))
-        ax_heat.set_xticklabels(
-            [f"{h:02d}:00" for h in range(24)], fontsize=8, rotation=45, ha="right"
-        )
-        ax_heat.set_xlabel("Hour of Day", fontsize=10)
+    ax_heat.set_xticks(range(24))
+    ax_heat.set_xticklabels(
+        [f"{h:02d}:00" for h in range(24)], fontsize=8, rotation=45, ha="right"
+    )
+    ax_heat.set_xlabel("Hour of Day", fontsize=10)
 
-        date_labels = [str(d) for d in heat_data.index]
-        ax_heat.set_yticks(range(len(date_labels)))
-        ax_heat.set_yticklabels(date_labels, fontsize=8)
-        ax_heat.set_ylabel("Date", fontsize=10)
+    date_labels = [str(d) for d in heat_data.index]
+    ax_heat.set_yticks(range(len(date_labels)))
+    ax_heat.set_yticklabels(date_labels, fontsize=8)
+    ax_heat.set_ylabel("Date", fontsize=10)
 
-        WAKE_HOUR = 6
-        SLEEP_HOUR = 22
-        ax_heat.axvline(
-            x=WAKE_HOUR - 0.5, color="white", linestyle="--", linewidth=1.2, alpha=0.8
-        )
-        ax_heat.axvline(
-            x=SLEEP_HOUR - 0.5, color="white", linestyle="--", linewidth=1.2, alpha=0.8
-        )
+    WAKE_HOUR = 6
+    SLEEP_HOUR = 22
+    ax_heat.axvline(
+        x=WAKE_HOUR - 0.5, color="white", linestyle="--", linewidth=1.2, alpha=0.8
+    )
+    ax_heat.axvline(
+        x=SLEEP_HOUR - 0.5, color="white", linestyle="--", linewidth=1.2, alpha=0.8
+    )
 
-        ax_heat.set_title(
-            "Circadian Glucose Heatmap (Mean mg/dL per Hour)", fontsize=12, pad=10
-        )
+    ax_heat.set_title(
+        "Circadian Glucose Heatmap (Mean mg/dL per Hour)", fontsize=12, pad=10
+    )
 
-    # --- DAILY ROW: Daily Glucose Overlay ---
-    if daily_plot:
-        daily_row = 3 if getattr(args, "heatmap", False) else 2
-        ax_daily = fig.add_subplot(gs[daily_row, :])
-        _draw_daily_axes(ax_daily, df, cfg, dark=dark)
 
-    # Header
-    date_range_str = format_date_range(df)
-    _add_figure_texts(report_header, date_range_str, _fg)
-
-    if getattr(args, "heatmap", False):
-        if daily_plot:
-            plt.suptitle(
-                "Ambulatory Glucose Profile with Time in Tight Range (TITR), Raw Data Series, Circadian Heatmap and Daily Overlay",
-                fontsize=14,
-                y=0.92,
-                color=_fg,
-            )
-        else:
-            plt.suptitle(
-                "Ambulatory Glucose Profile with Time in Tight Range (TITR), Raw Data Series and Circadian Heatmap",
-                fontsize=14,
-                y=0.92,
-                color=_fg,
-            )
-    else:
-        if daily_plot:
-            plt.suptitle(
-                "Ambulatory Glucose Profile with Time in Tight Range (TITR), Raw Data Series and Daily Overlay",
-                fontsize=14,
-                y=0.92,
-                color=_fg,
-            )
-        else:
-            plt.suptitle(
-                "Ambulatory Glucose Profile with Time in Tight Range (TITR) and Raw Data Series",
-                fontsize=14,
-                y=0.92,
-                color=_fg,
-            )
-
-    plt.tight_layout()
-
-    # Apply dark mode styling to all axes (must be AFTER tight_layout)
-    fig.patch.set_facecolor(_fig_fc)
+def _apply_theme_to_figure(fig, theme: dict):
+    """Apply dark/light theme colours to all axes in *fig*."""
+    fig.patch.set_facecolor(theme["fig_fc"])
     for _ax in fig.get_axes():
-        _ax.set_facecolor(_bg)
-        _ax.tick_params(colors=_fg)
-        _ax.xaxis.label.set_color(_fg)
-        _ax.yaxis.label.set_color(_fg)
-        _ax.title.set_color(_fg)
+        _ax.set_facecolor(theme["bg"])
+        _ax.tick_params(colors=theme["fg"])
+        _ax.xaxis.label.set_color(theme["fg"])
+        _ax.yaxis.label.set_color(theme["fg"])
+        _ax.title.set_color(theme["fg"])
         for spine in _ax.spines.values():
-            spine.set_edgecolor(_grid_col)
+            spine.set_edgecolor(theme["grid_col"])
 
+
+def _choose_suptitle(heatmap: bool, daily_plot: bool) -> str:
+    """Return the appropriate figure suptitle string."""
+    if heatmap:
+        if daily_plot:
+            return (
+                "Ambulatory Glucose Profile with Time in Tight Range (TITR), "
+                "Raw Data Series, Circadian Heatmap and Daily Overlay"
+            )
+        return (
+            "Ambulatory Glucose Profile with Time in Tight Range (TITR), "
+            "Raw Data Series and Circadian Heatmap"
+        )
+    if daily_plot:
+        return (
+            "Ambulatory Glucose Profile with Time in Tight Range (TITR), "
+            "Raw Data Series and Daily Overlay"
+        )
+    return (
+        "Ambulatory Glucose Profile with Time in Tight Range (TITR) "
+        "and Raw Data Series"
+    )
+
+
+def _save_and_finish(fig, theme: dict, args, output_path, show, close):
+    """Save, optionally show, and optionally close the figure."""
     metadata = {
         "Description": "Ambulatory Glucose Profile generated by AGP tool",
         "Source": "https://github.com/daedalus/agp",
@@ -863,13 +812,98 @@ def generate_agp_plot(
         output_path if output_path is not None else getattr(args, "output", None)
     )
     if _save_path:
-        plt.savefig(_save_path, dpi=300, bbox_inches="tight", metadata=metadata, facecolor=_fig_fc)
+        plt.savefig(
+            _save_path,
+            dpi=300,
+            bbox_inches="tight",
+            metadata=metadata,
+            facecolor=theme["fig_fc"],
+        )
         if getattr(args, "verbose", False):
             print(f"Plot saved to: {_save_path}")
     if show:
         plt.show()
     if close:
         plt.close()
+
+
+def generate_agp_plot(
+    df,
+    result,
+    metrics,
+    cfg,
+    args,
+    report_header,
+    *,
+    output_path=None,
+    show=False,
+    close=False,
+    daily_plot=False,
+):
+    """Render the full AGP figure and return it.
+
+    Args:
+        df: Preprocessed glucose DataFrame.
+        result: AGP profile DataFrame from :func:`build_agp_profile`.
+        metrics: Metrics dict from :func:`compute_all_metrics`.
+        cfg: Configuration dict from :func:`build_config`.
+        args: argparse Namespace (or None) supplying ``heatmap``,
+            ``heatmap_cmap``, ``output``, and ``verbose`` attributes.
+        report_header: Report header dict from :func:`create_report_header`.
+        output_path: If given, save the figure to this path (overrides
+            ``args.output``).  Pass ``None`` (and ensure ``args.output`` is
+            also ``None`` / falsy) to skip saving entirely.
+        show: If ``True`` call ``plt.show()`` after building the figure.
+        close: If ``True`` call ``plt.close()`` after building the figure.
+        daily_plot: If ``True`` add an extra daily overlay panel at the bottom
+            of the figure.  Default: ``False``.
+
+    Returns:
+        matplotlib.figure.Figure: The completed AGP figure.
+    """
+    dark  = getattr(args, "dark_mode", False)
+    theme = _resolve_theme(dark)
+    df    = _tag_glucose_ranges(df, cfg)
+
+    fig, gs = _make_figure_and_gridspec(
+        heatmap=getattr(args, "heatmap", False), daily_plot=daily_plot
+    )
+
+    # --- TOP ROW ---
+    ax_bar   = fig.add_subplot(gs[0, :2])
+    ax1      = fig.add_subplot(gs[0, 2:9])
+    ax_stats = fig.add_subplot(gs[0, 9:])
+
+    _draw_distribution_bar(ax_bar, metrics, cfg, theme)
+    _draw_agp_panel(ax1, ax_stats, result, metrics, cfg, theme)
+
+    # --- BOTTOM ROW ---
+    ax3 = fig.add_subplot(gs[1, :])
+    _draw_raw_scatter(ax3, df, metrics, cfg, theme)
+
+    # --- HEATMAP ROW ---
+    if getattr(args, "heatmap", False):
+        ax_heat = fig.add_subplot(gs[2, :])
+        _draw_heatmap(ax_heat, df, args)
+
+    # --- DAILY ROW ---
+    if daily_plot:
+        daily_row = 3 if getattr(args, "heatmap", False) else 2
+        ax_daily = fig.add_subplot(gs[daily_row, :])
+        _draw_daily_axes(ax_daily, df, cfg, dark=dark)
+
+    # --- FINALISE ---
+    date_range_str = format_date_range(df)
+    _add_figure_texts(report_header, date_range_str, theme["fg"])
+    plt.suptitle(
+        _choose_suptitle(getattr(args, "heatmap", False), daily_plot),
+        fontsize=14,
+        y=0.92,
+        color=theme["fg"],
+    )
+    plt.tight_layout()
+    _apply_theme_to_figure(fig, theme)
+    _save_and_finish(fig, theme, args, output_path, show, close)
     return fig
 
 

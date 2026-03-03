@@ -22,10 +22,7 @@ Example::
     report.export("out.json")   # export metrics to file
 """
 
-import argparse
-import json
-
-from .config import build_config
+from .config import ReportConfig, apply_config_overrides, build_config
 from .data import load_and_preprocess
 from .export import export_metrics
 from .metrics import compute_all_metrics
@@ -122,9 +119,9 @@ class ReportGenerator:
         heatmap_cmap="RdYlGn_r",
         dark_mode=False,
     ):
-        # Build an argparse Namespace so the existing helpers (build_config,
+        # Build a ReportConfig so the existing helpers (build_config,
         # create_report_header, generate_agp_plot) continue to work unchanged.
-        args = argparse.Namespace(
+        args = ReportConfig(
             input_file=input_file,
             output=output,
             very_low_threshold=very_low_threshold,
@@ -149,16 +146,7 @@ class ReportGenerator:
 
         # Apply JSON config file overrides (mirrors CLI behaviour).
         if config:
-            try:
-                with open(config) as f:
-                    cfg_overrides = json.load(f)
-                for key, value in cfg_overrides.items():
-                    if hasattr(args, key):
-                        setattr(args, key, value)
-                if verbose:
-                    print(f"Loaded configuration from {config}")
-            except Exception as e:
-                print(f"Error loading config file: {e}")
+            apply_config_overrides(args, config, verbose=verbose)
 
         self._args = args
         self._cfg = build_config(args)

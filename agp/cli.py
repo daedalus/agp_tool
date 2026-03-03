@@ -1,6 +1,7 @@
 import argparse
-import json
 from importlib.metadata import PackageNotFoundError, version
+
+from .config import apply_config_overrides
 
 try:
     __version__ = version("agp_tool")
@@ -152,15 +153,6 @@ def parse_args():
     args = parser.parse_args()
 
     if args.config:
-        try:
-            with open(args.config) as f:
-                config = json.load(f)
-                for key, value in config.items():
-                    if hasattr(args, key):
-                        setattr(args, key, value)
-                if args.verbose:
-                    print(f"Loaded configuration from {args.config}")
-        except Exception as e:
-            print(f"Error loading config file: {e}")
+        apply_config_overrides(args, args.config, verbose=args.verbose)
 
     return args

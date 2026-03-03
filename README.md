@@ -1,5 +1,7 @@
 # Ambulatory glucose profile analysis tool
 
+[![PyPI](https://img.shields.io/pypi/v/agp_tool)](https://pypi.org/project/agp_tool/)
+[![Python](https://img.shields.io/pypi/pyversions/agp_tool)](https://pypi.org/project/agp_tool/)
 [![Tests](https://github.com/daedalus/agp_tool/actions/workflows/tests.yml/badge.svg)](https://github.com/daedalus/agp_tool/actions/workflows/tests.yml)[![Codacy Badge](https://app.codacy.com/project/badge/Grade/f1bfcd04a9954c6792af145397b437fc)](https://app.codacy.com/gh/daedalus/agp_tool/dashboard?utm_source=gh&utm_medium=referral&utm_content=&utm_campaign=Badge_grade)![License](https://img.shields.io/badge/license-MIT-green)
 
 ## DISCLAIMER

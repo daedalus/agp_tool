@@ -8,7 +8,7 @@ version = "0.1.0.7"
 description = "Ambulatory glucose profile analysis tool"
 readme = "README.md"
 license = { file = "LICENSE" }
-requires-python = ">=3.11"
+requires-python = ">=3.9"
 authors = [
     { name = "Darío Clavijo" },
 ]
@@ -71,7 +71,7 @@ include = ["agp*"]
 
 [tool.ruff]
 line-length = 88
-target-version = "py311"
+target-version = "py39"
 
 [tool.ruff.lint]
 select = ["E", "F", "W", "I", "UP", "ANN", "TCH", "N", "C4", "ARG"]

@@ -8,7 +8,7 @@ version = "0.1.0.7"
 description = "Ambulatory glucose profile analysis tool"
 readme = "README.md"
 license = { file = "LICENSE" }
-requires-python = ">=3.9"
+requires-python = ">=3.11"
 authors = [
     { name = "Darío Clavijo" },
 ]
@@ -22,6 +22,7 @@ classifiers = [
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
     "Topic :: Scientific/Engineering :: Medical Science Apps.",
 ]
 dependencies = [
@@ -38,26 +39,72 @@ dependencies = [
 [project.urls]
 Homepage = "https://github.com/daedalus/agp_tool"
 Repository = "https://github.com/daedalus/agp_tool"
-"Bug Tracker" = "https://github.com/daedalus/agp_tool/issues"
+Issues = "https://github.com/daedalus/agp_tool/issues"
 
 [project.scripts]
 agp_tool = "agp.main:main"
 agp = "agp.main:main"
 
 [project.optional-dependencies]
-test = ["pytest>=7.0", "pytest-cov"]
-dev = ["black>=24.0", "ruff>=0.4.0"]
+dev = [
+    "ruff",
+    "mypy",
+    "hatch",
+]
+test = [
+    "pytest",
+    "pytest-cov",
+    "pytest-mock",
+    "pytest-asyncio",
+    "hypothesis",
+]
+lint = [
+    "ruff",
+    "mypy",
+]
+all = ["agp_tool[dev,test,lint]"]
+cli = ["click>=8.0"]
 
 [tool.setuptools.packages.find]
 where = ["."]
 include = ["agp*"]
 
-[tool.black]
-line-length = 88
-
 [tool.ruff]
 line-length = 88
+target-version = "py311"
 
 [tool.ruff.lint]
-select = ["E", "F", "W", "I", "UP"]
+select = ["E", "F", "W", "I", "UP", "ANN", "TCH", "N", "C4", "ARG"]
 ignore = ["E501"]
+
+[tool.ruff.lint.per-file-ignores]
+"__init__.py" = ["F401"]
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
+
+[tool.mypy]
+python_version = "3.11"
+warn_return_any = true
+warn_unused_ignores = true
+ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-v --tb=short --cov=agp --cov-fail-under=80"
+filterwarnings = ["ignore::DeprecationWarning"]
+
+[tool.coverage.run]
+source = ["agp"]
+branch = true
+
+[tool.coverage.report]
+exclude = ["tests/*", "*/__init__.py"]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "raise AssertionError",
+    "raise NotImplementedError",
+    "if __name__ == .__main__.:",
+    "if TYPE_CHECKING:",
+]

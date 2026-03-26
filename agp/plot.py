@@ -593,7 +593,7 @@ def _draw_agp_panel(ax1, ax_stats, result, metrics, cfg, theme: dict):
 
     xticks = np.arange(0, 1441, 120)
     ax1.set_xticks(xticks)
-    ax1.set_xticklabels([f"{int(t//60):02d}:00" for t in xticks])
+    ax1.set_xticklabels([f"{int(t // 60):02d}:00" for t in xticks])
 
     current_ylim = ax1.get_ylim()
     ax1.set_ylim(current_ylim[0], current_ylim[1] * 1.15)
@@ -801,8 +801,7 @@ def _choose_suptitle(heatmap: bool, daily_plot: bool) -> str:
             "Raw Data Series and Daily Overlay"
         )
     return (
-        "Ambulatory Glucose Profile with Time in Tight Range (TITR) "
-        "and Raw Data Series"
+        "Ambulatory Glucose Profile with Time in Tight Range (TITR) and Raw Data Series"
     )
 
 

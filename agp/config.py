@@ -1,6 +1,5 @@
 import json
 from dataclasses import dataclass, field
-from typing import Optional
 
 
 def apply_config_overrides(obj, config_path, verbose=False):
@@ -55,7 +54,7 @@ class ReportConfig:
     sensor_interval: int = 5
     min_samples: int = 5
     verbose: bool = False
-    config: Optional[str] = None
+    config: str | None = None
     patient_name: str = "Unknown"
     patient_id: str = "N/A"
     doctor: str = ""
